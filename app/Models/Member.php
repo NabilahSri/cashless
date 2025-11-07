@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\WithLogsActivity;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
 class Member extends Model
 {
-    use HasUuids;
+    use HasUuids, WithLogsActivity;
     protected $guarded = [];
 
     public function user()
@@ -15,7 +16,8 @@ class Member extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function wallet(){
+    public function wallet()
+    {
         return $this->hasOne(Wallet::class);
     }
 }

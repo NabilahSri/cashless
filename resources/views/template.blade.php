@@ -1,17 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+
+<head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
-    />
+    <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <title>
-      CRM Dashboard | TailAdmin - Tailwind CSS Admin Dashboard Template
+        CRM Dashboard | TailAdmin - Tailwind CSS Admin Dashboard Template
     </title>
     <link rel="icon" href="favicon.ico" />
     <link href="{{ asset('css/style.css') }}" rel="stylesheet" />
+    @vite('resources/css/app.css')
+    @livewireStyles
     {{-- <script data-cfasync="false" nonce="db9d0699-c7bd-4290-9e5b-58bcdca54a50">
       try {
         (function (w, d) {
@@ -113,80 +114,80 @@
         throw (fetch("/cdn-cgi/zaraz/t"), e);
       }
     </script> --}}
-  </head>
-  <body
-    x-data="{ page: 'crm', 'loaded': true, 'darkMode': false, 'stickyMenu': false, 'sidebarToggle': false, 'scrollTop': false }"
-    x-init="
-         darkMode = JSON.parse(localStorage.getItem('darkMode'));
-         $watch('darkMode', value => localStorage.setItem('darkMode', JSON.stringify(value)))"
-    :class="{'dark bg-gray-900': darkMode === true}"
-  >
+</head>
+
+<body x-data="{ page: '{{ $page ?? 'dashboard' }}', 'loaded': true, 'darkMode': false, 'stickyMenu': false, 'sidebarToggle': false, 'scrollTop': false }" x-init="darkMode = JSON.parse(localStorage.getItem('darkMode'));
+$watch('darkMode', value => localStorage.setItem('darkMode', JSON.stringify(value)))" :class="{ 'dark bg-gray-900': darkMode === true }">
     <!-- ===== Preloader Start ===== -->
-    <div
-      x-show="loaded"
-      x-init="window.addEventListener('DOMContentLoaded', () => {setTimeout(() => loaded = false, 500)})"
-      class="fixed left-0 top-0 z-999999 flex h-screen w-screen items-center justify-center bg-white dark:bg-black"
-    >
-      <div
-        class="h-16 w-16 animate-spin rounded-full border-4 border-solid border-brand-500 border-t-transparent"
-      ></div>
+    <div x-show="loaded" x-init="window.addEventListener('DOMContentLoaded', () => { setTimeout(() => loaded = false, 500) })"
+        class="fixed left-0 top-0 z-999999 flex h-screen w-screen items-center justify-center bg-white dark:bg-black">
+        <div class="h-16 w-16 animate-spin rounded-full border-4 border-solid border-brand-500 border-t-transparent">
+        </div>
     </div>
 
     <!-- ===== Preloader End ===== -->
 
     <!-- ===== Page Wrapper Start ===== -->
     <div class="flex h-screen overflow-hidden">
-      <!-- ===== Sidebar Start ===== -->
+        <!-- ===== Sidebar Start ===== -->
 
-      @include('v_layout.sidebar.base-sidebar')
+        @include('v_layout.sidebar.base-sidebar')
 
-      <!-- ===== Sidebar End ===== -->
+        <!-- ===== Sidebar End ===== -->
 
-      <!-- ===== Content Area Start ===== -->
-      <div
-        class="relative flex flex-1 flex-col overflow-x-hidden overflow-y-auto"
-      >
-        <!-- Small Device Overlay Start -->
-        <div
-          :class="sidebarToggle ? 'block xl:hidden' : 'hidden'"
-          class="fixed z-50 h-screen w-full bg-gray-900/50"
-        ></div>
-        <!-- Small Device Overlay End -->
+        <!-- ===== Content Area Start ===== -->
+        <div class="relative flex flex-1 flex-col overflow-x-hidden overflow-y-auto">
+            <!-- Small Device Overlay Start -->
+            <div :class="sidebarToggle ? 'block xl:hidden' : 'hidden'"
+                class="fixed z-50 h-screen w-full bg-gray-900/50"></div>
+            <!-- Small Device Overlay End -->
 
-        <!-- ===== Header Start ===== -->
-        @include('v_layout.header.base-header')
-        <!-- ===== Header End ===== -->
+            <!-- ===== Header Start ===== -->
+            @include('v_layout.header.base-header')
+            <!-- ===== Header End ===== -->
 
-        <!-- ===== Main Content Start ===== -->
-        <main>
-          <div
-            class="mx-auto max-w-(--breakpoint-2xl) p-4 pb-20 md:p-6 md:pb-6"
-          >
-            <div class="grid grid-cols-12 gap-4 md:gap-6">
-              <div class="col-span-12">
-                @yield('content')
-              </div>
-            </div>
-          </div>
-        </main>
-        <!-- ===== Main Content End ===== -->
-      </div>
-      <!-- ===== Content Area End ===== -->
+            <!-- ===== Main Content Start ===== -->
+            <main>
+                <div class="mx-auto max-w-(--breakpoint-2xl) p-4 pb-20 md:p-6 md:pb-6">
+                    <!-- Breadcrumb Start -->
+                    <div x-data="{ pageName: `{{ $pageName ?? '' }}` }">
+                        <div class="flex flex-wrap items-center justify-between gap-3 pb-6">
+                            <h2 class="text-xl font-semibold text-gray-800 dark:text-white/90" x-text="pageName"></h2>
+                            <nav>
+                                <ol class="flex items-center gap-1.5">
+                                    <li>
+                                        <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400"
+                                            href="index-2.html">
+                                            Home
+                                            <svg class="stroke-current" width="17" height="16"
+                                                viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke=""
+                                                    stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" />
+                                            </svg>
+                                        </a>
+                                    </li>
+                                    <li class="text-sm text-gray-800 dark:text-white/90" x-text="pageName"></li>
+                                </ol>
+                            </nav>
+                        </div>
+                    </div>
+                    <!-- Breadcrumb End -->
+                    @yield('content')
+                </div>
+            </main>
+            <!-- ===== Main Content End ===== -->
+        </div>
+        <!-- ===== Content Area End ===== -->
     </div>
     <!-- ===== Page Wrapper End ===== -->
-    <script
-      data-cfasync="false"
-      src="{{ asset('cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js') }}"
-    ></script>
-    <script defer src="{{ asset('js/bundle.js') }}"></script>
-    <script
-      defer
-      src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015"
-      integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ=="
-      data-cf-beacon='{"version":"2024.11.0","token":"67f7a278e3374824ae6dd92295d38f77","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}'
-      crossorigin="anonymous"
-    ></script>
-  </body>
+    <script data-cfasync="false" src="{{ asset('cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js') }}">
+    </script>
+    <script src="{{ asset('js/bundle.js') }}"></script>
+    @livewireScripts
+    <script defer src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015"
+        integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ=="
+        data-cf-beacon='{"version":"2024.11.0","token":"67f7a278e3374824ae6dd92295d38f77","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}'
+        crossorigin="anonymous"></script>
+</body>
 
-  <!-- Mirrored from demo.tailadmin.com/crm by HTTrack Website Copier/3.x [XR&CO'2014], Fri, 07 Nov 2025 06:20:58 GMT -->
 </html>

@@ -2,19 +2,22 @@
 
 namespace App\Models;
 
+use App\Traits\WithLogsActivity;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
 class PartnerUser extends Model
 {
-    use HasUuids;
+    use HasUuids, WithLogsActivity;
     protected $guarded = [];
 
-    public function user(){
+    public function user()
+    {
         return $this->belongsTo(User::class);
     }
 
-    public function partner(){
+    public function partner()
+    {
         return $this->belongsTo(Partner::class);
     }
 }
