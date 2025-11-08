@@ -23,4 +23,6 @@ Route::middleware(['cekAuth'])->group(function () {
         Route::resource('/member', MemberController::class, ['except' => ['show', 'destroy']]);
         Route::resource('/partner', PartnerController::class);
     });
+
+    Route::resource('/partner', PartnerController::class, ['except' => ['show', 'destroy']]);
 });

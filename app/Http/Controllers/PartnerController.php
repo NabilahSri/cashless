@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class PartnerController extends Controller
@@ -11,7 +12,7 @@ class PartnerController extends Controller
      */
     public function index()
     {
-        return view('v_page.pengguna.partner.index', ['page' => 'partner', 'pageName' => 'Partner']);
+        return view('v_page.partner.index', ['page' => 'partner', 'pageName' => 'Partner', 'selected' => 'Partner']);
     }
 
     /**
@@ -19,9 +20,12 @@ class PartnerController extends Controller
      */
     public function create()
     {
-        return view('v_page.pengguna.partner.create', [
+        $pengelola = User::where('role', 'pengelola')->get();
+        return view('v_page.partner.create', [
             'page' => 'partner',
             'pageName' => 'Partner',
+            'selected' => 'Partner',
+            'pengelola' => $pengelola
         ]);
     }
 
