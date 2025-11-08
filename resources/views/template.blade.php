@@ -75,7 +75,7 @@ $watch('darkMode', value => localStorage.setItem('darkMode', JSON.stringify(valu
         <!-- ===== Content Area End ===== -->
     </div>
     <!-- ===== Page Wrapper End ===== -->
-    <script src="{{ asset('js/bundle.js') }}"></script>
+    {{-- <script src="{{ asset('js/bundle.js') }}"></script> --}}
     <script data-cfasync="false" src="{{ asset('cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js') }}">
     </script>
     @livewireScripts
