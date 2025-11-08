@@ -16,6 +16,13 @@ class Member extends Model
         return $this->belongsTo(User::class);
     }
 
+    protected static function booted()
+    {
+        static::deleting(function ($member) {
+            optional($member->user)->delete();
+        });
+    }
+
     public function wallet()
     {
         return $this->hasOne(Wallet::class);

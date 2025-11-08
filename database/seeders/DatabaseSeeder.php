@@ -17,7 +17,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // $this->call(UserSeeder::class);
+        $this->call(UserSeeder::class);
         $faker = Faker::create('id_ID'); // Menggunakan data Indonesia
 
         for ($i = 1; $i <= 11; $i++) {
@@ -25,7 +25,7 @@ class DatabaseSeeder extends Seeder
             $userMember = User::create([
                 'username' => $faker->unique()->userName,
                 'password' => bcrypt('password'), // password default
-                'role' => 'admin',
+                'role' => 'member',
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);

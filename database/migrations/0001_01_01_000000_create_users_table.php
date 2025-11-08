@@ -15,7 +15,7 @@ return new class extends Migration
             $table->char('id', 36)->primary();
             $table->string('username')->unique();
             $table->string('password');
-            $table->enum('role', ['admin', 'user', 'partner'])->default('user');
+            $table->enum('role', ['admin', 'member', 'pengelola'])->default('member');
             $table->rememberToken();
             $table->timestamps();
         });

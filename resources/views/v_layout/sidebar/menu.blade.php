@@ -1,4 +1,4 @@
-<nav x-data="{ selected: $persist('Dashboard') }">
+<nav>
     <!-- Menu Group -->
     <div>
         <h3 class="mb-4 text-xs leading-[20px] text-gray-400 uppercase">
@@ -71,6 +71,12 @@
                     :class="(selected === 'Pengguna') ? 'block' : 'hidden'">
                     <ul :class="sidebarToggle ? 'xl:hidden' : 'flex'"
                         class="menu-dropdown mt-2 flex flex-col gap-1 pl-9">
+                        <li>
+                            <a href="{{ route('user.index') }}" class="menu-dropdown-item group"
+                                :class="(page === 'user') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'">
+                                User (admin & pengelola)
+                            </a>
+                        </li>
                         <li>
                             <a href="{{ route('member.index') }}" class="menu-dropdown-item group"
                                 :class="(page === 'member') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'">

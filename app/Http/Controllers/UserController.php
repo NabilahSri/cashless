@@ -4,14 +4,14 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
-class PartnerController extends Controller
+class UserController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        return view('v_page.pengguna.partner.index', ['page' => 'partner', 'pageName' => 'Partner']);
+        return view('v_page.pengguna.user.index', ['page' => 'user', 'pageName' => 'User', 'selected' => 'Pengguna']);
     }
 
     /**
@@ -19,10 +19,7 @@ class PartnerController extends Controller
      */
     public function create()
     {
-        return view('v_page.pengguna.partner.create', [
-            'page' => 'partner',
-            'pageName' => 'Partner',
-        ]);
+        //
     }
 
     /**
