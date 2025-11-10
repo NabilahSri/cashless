@@ -26,16 +26,6 @@
                         @enderror
                     </div>
 
-                    <div>
-                        <label class="block text-sm mb-1">Password</label>
-                        <input wire:model.defer="password" type="password"
-                            placeholder="Masukkan password jika ingin diubah"
-                            class="w-full rounded-lg border-gray-300 dark:bg-gray-900 dark:border-gray-700" />
-                        @error('password')
-                            <span class="text-red-600 text-xs">{{ $message }}</span>
-                        @enderror
-                    </div>
-
                     <!-- Role -->
                     <div>
                         <label class="block text-sm mb-1">Role</label>

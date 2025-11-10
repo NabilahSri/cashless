@@ -152,7 +152,18 @@ $watch('darkMode', value => localStorage.setItem('darkMode', JSON.stringify(valu
             });
         @endif
     </script>
-    @stack('modals')
+
+    <script>
+        window.addEventListener('reinit-hs-select', event => {
+            setTimeout(() => {
+                HSStaticMethods.autoInit();
+            }, 50);
+        });
+    </script>
+</body>
+
+</html>
+@stack('modals')
 </body>
 
 </html>

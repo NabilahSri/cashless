@@ -87,10 +87,24 @@
 
             <!-- Menu Item Partner -->
             <li>
+                <a href="{{ route('merchant.index') }}" @click="selected = (selected === 'Lokasi' ? '':'Lokasi')"
+                    class="menu-item group"
+                    :class="(selected === 'Lokasi') && (page === 'lokasi') ? 'menu-item-active' : 'menu-item-inactive'">
+                    <i class="fa-solid fa-location-dot text-xl"></i>
+
+                    <span class="menu-item-text" :class="sidebarToggle ? 'xl:hidden' : ''">
+                        Lokasi
+                    </span>
+                </a>
+            </li>
+            <!-- Menu Item Dashboard -->
+
+            <!-- Menu Item Partner -->
+            <li>
                 <a href="{{ route('wallet.index') }}" @click="selected = (selected === 'Dompet' ? '':'Dompet')"
                     class="menu-item group"
                     :class="(selected === 'Dompet') && (page === 'dompet') ? 'menu-item-active' : 'menu-item-inactive'">
-                    <i class="fa-solid fa-wallet"></i>
+                    <i class="fa-solid fa-wallet text-xl"></i>
 
                     <span class="menu-item-text" :class="sidebarToggle ? 'xl:hidden' : ''">
                         Dompet
@@ -105,7 +119,7 @@
                     @click="selected = (selected === 'Ativitas Log' ? '':'Ativitas Log')" class="menu-item group"
                     :class="(selected === 'Ativitas Log') && (page === 'aktivitas-log') ? 'menu-item-active' :
                     'menu-item-inactive'">
-                    <i class="fa-solid fa-wallet"></i>
+                    <i class="fa-solid fa-gear text-xl"></i>
 
                     <span class="menu-item-text" :class="sidebarToggle ? 'xl:hidden' : ''">
                         Aktivitas Log

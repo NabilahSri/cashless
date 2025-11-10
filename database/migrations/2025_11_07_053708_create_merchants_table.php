@@ -12,7 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('merchants', function (Blueprint $table) {
-             $table->char('id', 36)->primary();
+            $table->char('id', 36)->primary();
+            $table->string('name');
             $table->char('partner_id', 36);
             $table->integer('device_id')->unique();
             $table->timestamps();
