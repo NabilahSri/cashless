@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('partner_users', function (Blueprint $table) {
             $table->char('id', 36)->primary();
             $table->char('partner_id', 36);
-            $table->char('user_id', 36);
+            $table->char('user_id', 36)->nullable();
             $table->timestamps();
 
             $table->foreign('partner_id')->references('id')->on('partners')->onDelete('cascade');

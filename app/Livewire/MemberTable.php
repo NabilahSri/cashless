@@ -40,11 +40,11 @@ class MemberTable extends DataTableComponent
                 ->sortable()
                 ->searchable(),
 
-            Column::make("Username", "user.username")
+            Column::make("Nama Member", "name")
                 ->sortable()
                 ->searchable(),
 
-            Column::make("Nama Member", "name")
+            Column::make("Username", "user.username")
                 ->sortable()
                 ->searchable(),
 

@@ -6,6 +6,16 @@
                 <h2 class="text-lg font-semibold mb-4">{{ $mode === 'create' ? 'Tambah User' : 'Edit User' }}</h2>
                 <form wire:submit.prevent="save" class="space-y-4">
 
+                    <!-- Name -->
+                    <div>
+                        <label class="block text-sm mb-1">Nama</label>
+                        <input wire:model.defer="name" type="text"
+                            class="w-full rounded-lg border-gray-300 dark:bg-gray-900 dark:border-gray-700" />
+                        @error('name')
+                            <span class="text-red-600 text-xs">{{ $message }}</span>
+                        @enderror
+                    </div>
+
                     <!-- Username -->
                     <div>
                         <label class="block text-sm mb-1">Username</label>

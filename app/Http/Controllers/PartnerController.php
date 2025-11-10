@@ -2,8 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Partner;
+use App\Models\PartnerUser;
 use App\Models\User;
+use Egulias\EmailValidator\Parser\PartParser;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class PartnerController extends Controller
 {
@@ -34,7 +39,31 @@ class PartnerController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validateData = $request->validate([
+            'name' => 'required',
+            'email' => 'required|email|unique:partners,email',
+            'phone' => 'required',
+            'address' => 'required',
+            'user_id' => 'nullable|array',
+            'user_id.*' => 'exists:users,id'
+        ]);
+        DB::beginTransaction();
+        try {
+            $partner = Partner::create($request->except('user_id'));
+            $userIds = $request->input('user_id', [null]);
+            $newPartnerId = $partner->id;
+            foreach ($userIds as $userId) {
+                PartnerUser::create([
+                    'partner_id' => $newPartnerId,
+                    'user_id' => $userId,
+                ]);
+            }
+            DB::commit();
+            return redirect()->route('partner.index')->with('success', 'Data partner baru berhasil ditambahkan.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Gagal menyimpan data: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -50,7 +79,10 @@ class PartnerController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $pengelola = User::where('role', 'pengelola')->get();
+        $partner = Partner::find($id);
+        $user_id = PartnerUser::where('partner_id', $id)->pluck('user_id');
+        return view('v_page.partner.edit', ['page' => 'partner', 'pageName' => 'Partner', 'selected' => 'Partner', 'pengelola' => $pengelola, 'partner' => $partner, 'user_id' => $user_id]);
     }
 
     /**
@@ -58,7 +90,32 @@ class PartnerController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $partner = Partner::find($id);
+        $validateData = $request->validate([
+            'name' => 'required',
+            'email' => 'required|email|' . Rule::unique('partners')->ignore($partner->id),
+            'phone' => 'required',
+            'address' => 'required',
+            'user_id' => 'nullable|array',
+            'user_id.*' => 'exists:users,id'
+        ]);
+        DB::beginTransaction();
+        try {
+            $partner->update($request->except('user_id'));
+            $userIds = $request->input('user_id', [null]);
+            PartnerUser::where('partner_id', $id)->delete();
+            foreach ($userIds as $userId) {
+                PartnerUser::create([
+                    'partner_id' => $id,
+                    'user_id' => $userId,
+                ]);
+            }
+            DB::commit();
+            return redirect()->route('partner.index')->with('success', 'Data partner berhasil diperbarui.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Gagal memperbarui data: ' . $e->getMessage());
+        }
     }
 
     /**

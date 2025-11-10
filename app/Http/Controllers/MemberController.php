@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Member;
 use App\Models\User;
+use App\Models\Wallet;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -42,6 +43,7 @@ class MemberController extends Controller
         return view('v_page.pengguna.member.create', [
             'page' => 'member',
             'pageName' => 'Member',
+            'selected' => "Pengguna",
             'newMemberNo' => $newMemberNo
         ]);
     }
@@ -56,13 +58,14 @@ class MemberController extends Controller
             'name'      => 'required|string|max:255',
             'username'  => 'required|string|max:100|unique:users,username',
             'email'     => 'required|email|max:255|unique:members,email',
-            'phone'     => 'required|string|max:20|unique:members,phone',
+            'phone'     => 'required|string|max:20',
             'card_uid'  => 'required|string|max:100|unique:members,card_uid',
             'address'   => 'nullable|string',
         ]);
         try {
             DB::transaction(function () use ($validatedData) {
                 $userData = [
+                    'name' => $validatedData['name'],
                     'username' => $validatedData['username'],
                     'password' => bcrypt('password'),
                     'role' => 'member',
@@ -71,18 +74,25 @@ class MemberController extends Controller
                 $memberData = [
                     'user_id' => $newUser->id,
                     'member_no' => $validatedData['member_no'],
-                    'name' => $validatedData['name'],
+                    'name' => $newUser->name,
                     'email' => $validatedData['email'],
                     'phone' => $validatedData['phone'],
                     'card_uid' => $validatedData['card_uid'],
                     'address' => $validatedData['address'],
                 ];
-                Member::create($memberData);
+                $newMember = Member::create($memberData);
+                Wallet::create([
+                    'member_id' => $newMember->id,
+                    'balance' => 0,
+                    'last_topup_at' => null,
+                ]);
             });
+            DB::commit();
+            return redirect()->route('member.index')->with('success', 'Data member baru berhasil ditambahkan.');
         } catch (\Exception $e) {
+            DB::rollBack();
             return redirect()->back()->with('error', 'Gagal menyimpan data: ' . $e->getMessage())->withInput();
         }
-        return redirect()->route('member.index')->with('success', 'Data member baru berhasil ditambahkan.');
     }
 
     /**
@@ -121,6 +131,7 @@ class MemberController extends Controller
         try {
             DB::transaction(function () use ($validatedData, $member, $request) {
                 $userData = [
+                    'name' => $validatedData['name'],
                     'username' => $validatedData['username'],
                 ];
                 if ($request->filled('password')) {
@@ -129,7 +140,7 @@ class MemberController extends Controller
                 $member->user->update($userData);
                 $member->update([
                     'member_no' => $validatedData['member_no'],
-                    'name'      => $validatedData['name'],
+                    'name'      => $userData['name'],
                     'email'    => $validatedData['email'],
                     'phone'     => $validatedData['phone'],
                     'card_uid'  => $validatedData['card_uid'],

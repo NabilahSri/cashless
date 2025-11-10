@@ -1,19 +1,19 @@
 <div class="flex gap-2">
 
-    @isset($viewUrl)
-        <a href="{{ $viewUrl }}" title="Lihat"
+    @if ($viewEvent ?? false)
+        <button wire:click="$dispatch('{{ $viewEvent }}', { id: '{{ $row->id }}' } )" title="Lihat"
             class="flex items-center justify-center w-8 h-8 bg-gray-500 text-white rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500">
             <i class="fa-regular fa-eye"></i>
-        </a>
-    @endisset
+        </button>
+    @endif
 
     @if ($editEvent ?? false)
-        <button wire:click="$dispatch('{{ $editEvent }}', { id: '{{ $row->id }}' } )"
+        <button wire:click="$dispatch('{{ $editEvent }}', { id: '{{ $row->id }}' } )" title="Edit"
             class="flex items-center justify-center w-8 h-8 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
             <i class="fa-solid fa-pen"></i>
         </button>
     @elseif ($editUrl ?? false)
-        <a href="{{ $editUrl }}"
+        <a href="{{ $editUrl }}" title="Edit"
             class="flex items-center justify-center w-8 h-8 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
             <i class="fa-solid fa-pen"></i>
         </a>

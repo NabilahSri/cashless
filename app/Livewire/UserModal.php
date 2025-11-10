@@ -11,6 +11,7 @@ class UserModal extends Component
     public $show = false;
     public $mode = 'create';
     public $userId = null;
+    public $name;
     public $username;
     public $password;
     public $role;
@@ -24,7 +25,7 @@ class UserModal extends Component
     public function open()
     {
         $this->resetValidation();
-        $this->reset(['username', 'password', 'role']);
+        $this->reset(['name', 'username', 'password', 'role']);
         $this->show = true;
     }
 
@@ -34,6 +35,7 @@ class UserModal extends Component
         $this->mode = 'edit';
         $this->userId = $id;
         $user = User::findOrFail($id);
+        $this->name = $user->name;
         $this->username = $user->username;
         $this->role = $user->role;
         $this->show = true;
@@ -44,10 +46,12 @@ class UserModal extends Component
     {
         if ($this->mode === 'create') {
             $this->validate([
+                'name' => 'required',
                 'username' => 'required|unique:users,username',
                 'role' => 'required|in:admin,pengelola',
             ]);
             User::create([
+                'name' => $this->name,
                 'username' => $this->username,
                 'password' => bcrypt('password'),
                 'role' => $this->role
@@ -55,12 +59,14 @@ class UserModal extends Component
             $this->dispatch('success', message: 'User berhasil ditambahkan.');
         } else {
             $this->validate([
+                'name' => 'required',
                 'username' => 'required|unique:users,username,' . $this->userId,
                 'role' => 'required|in:admin,pengelola',
                 'password' => 'nullable',
             ]);
             $user = User::findOrFail($this->userId);
             $data = [
+                'name' => $this->name,
                 'username' => $this->username,
                 'role' => $this->role,
             ];

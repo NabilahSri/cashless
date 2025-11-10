@@ -84,6 +84,35 @@
                 </a>
             </li>
             <!-- Menu Item Dashboard -->
+
+            <!-- Menu Item Partner -->
+            <li>
+                <a href="{{ route('wallet.index') }}" @click="selected = (selected === 'Dompet' ? '':'Dompet')"
+                    class="menu-item group"
+                    :class="(selected === 'Dompet') && (page === 'dompet') ? 'menu-item-active' : 'menu-item-inactive'">
+                    <i class="fa-solid fa-wallet"></i>
+
+                    <span class="menu-item-text" :class="sidebarToggle ? 'xl:hidden' : ''">
+                        Dompet
+                    </span>
+                </a>
+            </li>
+            <!-- Menu Item Dashboard -->
+
+            <!-- Menu Item Partner -->
+            <li>
+                <a href="{{ route('log-activity.index') }}"
+                    @click="selected = (selected === 'Ativitas Log' ? '':'Ativitas Log')" class="menu-item group"
+                    :class="(selected === 'Ativitas Log') && (page === 'aktivitas-log') ? 'menu-item-active' :
+                    'menu-item-inactive'">
+                    <i class="fa-solid fa-wallet"></i>
+
+                    <span class="menu-item-text" :class="sidebarToggle ? 'xl:hidden' : ''">
+                        Aktivitas Log
+                    </span>
+                </a>
+            </li>
+            <!-- Menu Item Dashboard -->
         </ul>
     </div>
 </nav>

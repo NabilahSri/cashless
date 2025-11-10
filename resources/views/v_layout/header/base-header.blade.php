@@ -111,7 +111,7 @@
                      </span>
 
                      <span class="text-theme-sm mr-1 block font-medium">
-                         {{ auth()->user()->role == 'member' ? auth()->user()->member->name : auth()->user()->username }}
+                         {{ auth()->user()->name }}
                      </span>
 
                      <svg :class="dropdownOpen && 'rotate-180'" class="stroke-gray-500 dark:stroke-gray-400"
@@ -125,16 +125,16 @@
                  <!-- Dropdown Start -->
                  <div x-show="dropdownOpen"
                      class="shadow-theme-lg dark:bg-gray-dark absolute right-0 mt-[17px] flex w-[260px] flex-col rounded-2xl border border-gray-200 bg-white p-3 dark:border-gray-800">
-                     @if (auth()->user()->role == 'member')
-                         <div>
-                             <span class="text-theme-sm block font-medium text-gray-700 dark:text-gray-400">
-                                 {{ auth()->user()->username }}
-                             </span>
+                     <div>
+                         <span class="text-theme-sm block font-medium text-gray-700 dark:text-gray-400">
+                             {{ auth()->user()->username }}
+                         </span>
+                         @if (auth()->user()->role == 'member')
                              <span class="text-theme-xs mt-0.5 block text-gray-500 dark:text-gray-400">
                                  {{ auth()->user()->member->email }}
                              </span>
-                         </div>
-                     @endif
+                         @endif
+                     </div>
 
                      <ul class="flex flex-col gap-1 border-b border-gray-200 pt-4 pb-3 dark:border-gray-800">
                          @if (auth()->user()->role == 'member')
