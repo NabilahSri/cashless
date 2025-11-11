@@ -24,6 +24,7 @@ class UserModal extends Component
 
     public function open()
     {
+        $this->mode = 'create';
         $this->resetValidation();
         $this->reset(['name', 'username', 'password', 'role']);
         $this->show = true;

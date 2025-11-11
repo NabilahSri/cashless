@@ -27,7 +27,8 @@
                             class="hidden">
                             <option value="">Choose</option>
                             @foreach ($partner as $item)
-                                <option value="{{ $item->id }} ">{{ $item->name }}</option">
+                                <option value="{{ $item->id }}" {{ $partner_id = $item->id ? 'selected' : '' }}>
+                                    {{ $item->name }}</option>
                             @endforeach
                         </select>
                         @error('partner_id')
