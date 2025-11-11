@@ -73,6 +73,20 @@
 
             <!-- Menu Item Partner -->
             <li>
+                <a href="{{ route('wallet.index') }}" @click="selected = (selected === 'Dompet' ? '':'Dompet')"
+                    class="menu-item group"
+                    :class="(selected === 'Dompet') && (page === 'dompet') ? 'menu-item-active' : 'menu-item-inactive'">
+                    <i class="fa-solid fa-wallet text-xl"></i>
+
+                    <span class="menu-item-text" :class="sidebarToggle ? 'xl:hidden' : ''">
+                        Dompet
+                    </span>
+                </a>
+            </li>
+            <!-- Menu Item Dashboard -->
+
+            <!-- Menu Item Partner -->
+            <li>
                 <a href="{{ route('partner.index') }}" @click="selected = (selected === 'Partner' ? '':'Partner')"
                     class="menu-item group"
                     :class="(selected === 'Partner') && (page === 'partner') ? 'menu-item-active' : 'menu-item-inactive'">
@@ -101,13 +115,15 @@
 
             <!-- Menu Item Partner -->
             <li>
-                <a href="{{ route('wallet.index') }}" @click="selected = (selected === 'Dompet' ? '':'Dompet')"
+                <a href="{{ route('transaction.index') }}"
+                    @click="selected = (selected === 'Histori Transaksi' ? '':Histori 'Transaksi')"
                     class="menu-item group"
-                    :class="(selected === 'Dompet') && (page === 'dompet') ? 'menu-item-active' : 'menu-item-inactive'">
-                    <i class="fa-solid fa-wallet text-xl"></i>
+                    :class="(selected === 'Histori Transaksi') && (page === 'history-transaksi') ? 'menu-item-active' :
+                    'menu-item-inactive'">
+                    <i class="fa-solid fa-dollar-sign text-xl"></i>
 
                     <span class="menu-item-text" :class="sidebarToggle ? 'xl:hidden' : ''">
-                        Dompet
+                        Histori Transaksi
                     </span>
                 </a>
             </li>
@@ -116,8 +132,8 @@
             <!-- Menu Item Partner -->
             <li>
                 <a href="{{ route('log-activity.index') }}"
-                    @click="selected = (selected === 'Ativitas Log' ? '':'Ativitas Log')" class="menu-item group"
-                    :class="(selected === 'Ativitas Log') && (page === 'aktivitas-log') ? 'menu-item-active' :
+                    @click="selected = (selected === 'Aktivitas Log' ? '':'Aktivitas Log')" class="menu-item group"
+                    :class="(selected === 'Aktivitas Log') && (page === 'aktivitas-log') ? 'menu-item-active' :
                     'menu-item-inactive'">
                     <i class="fa-solid fa-gear text-xl"></i>
 

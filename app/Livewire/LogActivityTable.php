@@ -14,6 +14,8 @@ class LogActivityTable extends DataTableComponent
     public function configure(): void
     {
         $this->setPrimaryKey('id');
+        $this->setDefaultSort('created_at', 'desc');
+        $this->setSortingPillsDisabled();
         $this->setAdditionalSelects(['properties', 'activity_log.id']);
     }
 

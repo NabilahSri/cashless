@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('transactions', function (Blueprint $table) {
             $table->char('id', 36)->primary();
+            $table->string('trx_id');
             $table->char('user_id', 36);
             $table->char('wallet_id', 36);
             $table->char('merchant_id', 36);
@@ -20,7 +21,6 @@ return new class extends Migration
             $table->integer('amount');
             $table->text('description');
             $table->timestamps();
-
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('wallet_id')->references('id')->on('wallets')->onDelete('cascade');
             $table->foreign('merchant_id')->references('id')->on('merchants')->onDelete('cascade');

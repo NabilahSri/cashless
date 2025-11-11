@@ -11,7 +11,7 @@ class TransactionController extends Controller
      */
     public function index()
     {
-        //
+        return view('v_page.transaction.index', ['page' => 'history-transaksi', 'pageName' => 'Histori Transaksi', 'selected' => 'Histori Transaksi']);
     }
 
     /**
