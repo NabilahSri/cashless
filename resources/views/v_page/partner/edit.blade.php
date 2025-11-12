@@ -56,6 +56,34 @@
                                 rows="3" required>{{ $partner->address }}</textarea>
                         </div>
 
+                        @if (auth()->user()->role == 'admin')
+                            <div class="w-full px-2.5">
+                                <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                                    Tetapkan Sebagai Partner Utama
+                                </label>
+                                <div x-data="{ switcherToggle: {{ $partner->status }} }">
+                                    <label for="toggle1"
+                                        class="flex cursor-pointer items-center gap-3 text-sm font-medium text-gray-700 select-none dark:text-gray-400">
+                                        <div class="relative">
+                                            <!-- input utama -->
+                                            <input type="hidden" name="status" :value="switcherToggle ? 1 : 0">
+
+                                            <input type="checkbox" id="toggle1" class="sr-only"
+                                                @change="switcherToggle = !switcherToggle" />
+
+                                            <div class="block h-6 w-11 rounded-full"
+                                                :class="switcherToggle ? 'bg-brand-500 dark:bg-brand-500' :
+                                                    'bg-gray-200 dark:bg-white/10'">
+                                            </div>
+                                            <div :class="switcherToggle ? 'translate-x-full' : 'translate-x-0'"
+                                                class="shadow-theme-sm absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white duration-300 ease-linear">
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        @endif
+
                         {{-- Pengelola --}}
                         <div class="w-full px-2.5">
                             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">

@@ -4,11 +4,13 @@
         <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
             <div class="px-5 py-4 sm:px-6 sm:py-5 flex justify-between">
                 <div class="flex items-center space-x-3">
-                    <a href="{{ route('partner.create') }}"
-                        class="inline-flex gap-2 items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all duration-200 ease-in-out hover:scale-105 hover:bg-blue-700 focus:outline-none focus:ring-2  dark:bg-blue-500 dark:hover:bg-blue-400 dark:hover:scale-105">
-                        <i class="fa-solid fa-plus"></i>
-                        Tambah Data
-                    </a>
+                    @if (auth()->user()->role == 'admin')
+                        <a href="{{ route('partner.create') }}"
+                            class="inline-flex gap-2 items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all duration-200 ease-in-out hover:scale-105 hover:bg-blue-700 focus:outline-none focus:ring-2  dark:bg-blue-500 dark:hover:bg-blue-400 dark:hover:scale-105">
+                            <i class="fa-solid fa-plus"></i>
+                            Tambah Data
+                        </a>
+                    @endif
                     @if (auth()->user()->role == 'pengelola')
                         <button type="button" x-data @click="$dispatch('openTransactionModal')"
                             class="inline-flex gap-2 items-center justify-center rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all duration-200 ease-in-out hover:scale-105 hover:bg-green-700 focus:outline-none focus:ring-2 dark:bg-green-500 dark:hover:bg-green-400 dark:hover:scale-105">

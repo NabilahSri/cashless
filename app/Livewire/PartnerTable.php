@@ -6,6 +6,8 @@ use Rappasoft\LaravelLivewireTables\DataTableComponent;
 use Rappasoft\LaravelLivewireTables\Views\Column;
 use App\Models\Partner;
 use App\Models\PartnerUser;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\On;
 
 class PartnerTable extends DataTableComponent
@@ -14,14 +16,24 @@ class PartnerTable extends DataTableComponent
 
     public function configure(): void
     {
+        $this->setSortingPillsDisabled();
+        $this->setDefaultSort('created_at', 'desc');
         $this->setPrimaryKey('id');
+        $this->setAdditionalSelects(['id', 'status']);
+    }
+
+    public function builder(): Builder
+    {
+        if (Auth::user()->role == 'pengelola') {
+            $partner_id = PartnerUser::where('user_id', Auth::user()->id)->pluck('partner_id');
+            return Partner::where('id', $partner_id);
+        }
+        return Partner::query();
     }
 
     public function columns(): array
     {
         return [
-            Column::make("Id", "id")
-                ->hideIf(true),
             Column::make("Nama", "name")
                 ->searchable()
                 ->sortable(),
@@ -32,6 +44,8 @@ class PartnerTable extends DataTableComponent
             Column::make("Alamat", "address"),
             Column::make("Tanggal Bergabung", "created_at")
                 ->sortable(),
+            Column::make('status', 'status')
+                ->label(fn($row) => $row->status == 1 ? 'Default' : '-'),
             Column::make('Aksi')
                 ->label(
                     fn($row) =>

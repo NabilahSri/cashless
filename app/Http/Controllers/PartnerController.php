@@ -44,10 +44,17 @@ class PartnerController extends Controller
             'email' => 'required|email|unique:partners,email',
             'phone' => 'required',
             'address' => 'required',
+            'status' => 'nullable',
             'user_id' => 'nullable|array',
             'user_id.*' => 'exists:users,id'
         ]);
         DB::beginTransaction();
+        if ($validateData['status'] == 1) {
+            $cekDefault = Partner::where('status', true)->first();
+            if ($cekDefault) {
+                return redirect()->back()->with('error', 'Data partner default sudah ada.');
+            }
+        }
         try {
             $partner = Partner::create($request->except('user_id'));
             $userIds = $request->input('user_id', [null]);
@@ -96,10 +103,15 @@ class PartnerController extends Controller
             'email' => 'required|email|' . Rule::unique('partners')->ignore($partner->id),
             'phone' => 'required',
             'address' => 'required',
+            'status' => 'nullable',
             'user_id' => 'nullable|array',
             'user_id.*' => 'exists:users,id'
         ]);
         DB::beginTransaction();
+        $cekDefault = Partner::where('status', true)->first();
+        if ($cekDefault) {
+            return redirect()->back()->with('error', 'Data partner default sudah ada.');
+        }
         try {
             $partner->update($request->except('user_id'));
             $userIds = $request->input('user_id', [null]);

@@ -61,13 +61,14 @@ class MemberController extends Controller
             'phone'     => 'required|string|max:20',
             'card_uid'  => 'required|string|max:100|unique:members,card_uid',
             'address'   => 'nullable|string',
+            'password'  => 'required|string',
         ]);
         try {
             DB::transaction(function () use ($validatedData) {
                 $userData = [
                     'name' => $validatedData['name'],
                     'username' => $validatedData['username'],
-                    'password' => bcrypt('password'),
+                    'password' => $validatedData['password'],
                     'role' => 'member',
                 ];
                 $newUser = User::create($userData);

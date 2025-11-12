@@ -54,7 +54,7 @@ class UserModal extends Component
             User::create([
                 'name' => $this->name,
                 'username' => $this->username,
-                'password' => bcrypt('password'),
+                'password' => $this->password,
                 'role' => $this->role
             ]);
             $this->dispatch('success', message: 'User berhasil ditambahkan.');

@@ -47,13 +47,10 @@
                                 <dd class="dark:text-white">{{ $member->name }}</dd>
                                 <dt class="text-gray-500 dark:text-gray-400">Email:</dt>
                                 <dd class="dark:text-white">{{ $member->email }}</dd>
-
-                                <!-- ▼▼▼ TAMBAHAN BARU ▼▼▼ -->
                                 <dt class="text-gray-500 dark:text-gray-400 mt-2">Saldo Saat Ini:</dt>
                                 <dd class="dark:text-white font-bold text-lg mt-1">
                                     Rp {{ number_format($currentBalance, 0, ',', '.') }}
                                 </dd>
-                                <!-- ▲▲▲ AKHIR TAMBAHAN ▲▲▲ -->
                             </dl>
                         </div>
                     @endif
@@ -66,9 +63,19 @@
                                     class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Nominal Transaksi
                                 </label>
-                                <input type="number" id="nominal" wire:model.defer="nominal"
-                                    placeholder="Contoh: 50000"
-                                    class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                                <input type="text" id="nominal" x-data x-init="$watch('value', v => $wire.set('nominal', v.replace(/\D/g, '')))"
+                                    x-on:input="
+                                                    let raw = $event.target.value.replace(/\D/g, '');
+                                                    if (raw) {
+                                                        $event.target.value = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(raw);
+                                                    } else {
+                                                        $event.target.value = '';
+                                                    }
+                                                    $wire.set('nominal', raw);
+                                                "
+                                    placeholder="Contoh: 50.000"
+                                    class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
+
                                 @error('nominal')
                                     <span class="text-sm text-red-500">{{ $message }}</span>
                                 @enderror
@@ -82,7 +89,9 @@
                                 <select id="transactionType" wire:model.defer="transactionType"
                                     class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
                                     <option value="">Pilih tipe transaksi...</option>
-                                    <option value="topup">Top Up / Deposit</option>
+                                    @if ($cekDefault->status == 1)
+                                        <option value="topup">Top Up / Deposit</option>
+                                    @endif
                                     <option value="payment">Pembayaran / Pembelian</option>
                                 </select>
                                 @error('transactionType')

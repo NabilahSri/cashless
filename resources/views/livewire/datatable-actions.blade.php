@@ -20,10 +20,12 @@
     @endif
 
     @isset($delete)
-        <button wire:click="confirmDelete('{{ $row->id }}')" title="Hapus"
-            class="flex items-center justify-center w-8 h-8 bg-red-500 text-white rounded-md
-                       hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500">
-            <i class="fa-regular fa-trash-can"></i>
-        </button>
+        @if (auth()->user()->role == 'admin')
+            <button wire:click="confirmDelete('{{ $row->id }}')" title="Hapus"
+                class="flex items-center justify-center w-8 h-8 bg-red-500 text-white rounded-md
+                   hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500">
+                <i class="fa-regular fa-trash-can"></i>
+            </button>
+        @endif
     @endisset
 </div>
