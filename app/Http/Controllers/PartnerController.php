@@ -108,9 +108,11 @@ class PartnerController extends Controller
             'user_id.*' => 'exists:users,id'
         ]);
         DB::beginTransaction();
-        $cekDefault = Partner::where('status', true)->first();
-        if ($cekDefault) {
-            return redirect()->back()->with('error', 'Data partner default sudah ada.');
+        if ($validateData['status'] == 1) {
+            $cekDefault = Partner::where('status', true)->where('id', '!=', $partner->id)->first();
+            if ($cekDefault) {
+                return redirect()->back()->with('error', 'Data partner default sudah ada.');
+            }
         }
         try {
             $partner->update($request->except('user_id'));

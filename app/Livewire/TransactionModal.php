@@ -56,13 +56,7 @@ class TransactionModal extends Component
             $wallet = Wallet::where('member_id', $this->member->id)->first();
 
             if ($wallet) {
-                $totalTopup = Transaction::where('wallet_id', $wallet->id)
-                    ->where('type', 'topup')
-                    ->sum('amount');
-                $totalPayment = Transaction::where('wallet_id', $wallet->id)
-                    ->where('type', 'payment')
-                    ->sum('amount');
-                $this->currentBalance = $totalTopup - $totalPayment;
+                $this->currentBalance = $wallet->balance ?? 0;
             }
         }
     }
@@ -70,15 +64,18 @@ class TransactionModal extends Component
     public function saveTransaction()
     {
         $user = Auth::user()->id;
+
         if (!$this->member) {
             session()->flash('error', 'Silakan cari member terlebih dahulu.');
             return;
         }
+
         $this->validate([
             'nominal' => 'required|numeric|min:1',
             'transactionType' => 'required|string',
             'deskripsi' => 'nullable|string|max:255',
         ]);
+
         $wallet = Wallet::where('member_id', $this->member->id)->first();
         if (!$wallet) {
             session()->flash('error', 'Gagal! Wallet untuk member ini tidak ditemukan.');
@@ -96,21 +93,22 @@ class TransactionModal extends Component
             session()->flash('error', 'Gagal! Merchant untuk partner Anda tidak ditemukan.');
             return;
         }
-        if ($this->transactionType == 'payment') {
-            if ($this->nominal > $this->currentBalance) {
-                session()->flash('error', 'Transaksi Gagal! Saldo member tidak mencukupi (Saldo: Rp ' . number_format($this->currentBalance, 0, ',', '.') . ').');
-                return;
-            }
+
+        // Cek saldo sebelum pembayaran
+        if ($this->transactionType === 'payment' && $this->nominal > $wallet->balance) {
+            session()->flash('error', 'Transaksi Gagal! Saldo member tidak mencukupi (Saldo: Rp ' . number_format($wallet->balance, 0, ',', '.') . ').');
+            return;
         }
+
         try {
+            // Generate ID Transaksi
             $datePart = now()->format('dmY');
             $todayCount = Transaction::whereDate('created_at', today())->count();
             $numberPart = str_pad($todayCount + 1, 3, '0', STR_PAD_LEFT);
-
             $generatedTrxId = 'TRX' . $datePart . $numberPart;
 
-
-            Transaction::create([
+            // Simpan transaksi
+            $transaction = Transaction::create([
                 'trx_id' => $generatedTrxId,
                 'wallet_id' => $wallet->id,
                 'merchant_id' => $merchant->id,
@@ -119,6 +117,16 @@ class TransactionModal extends Component
                 'description' => $this->deskripsi,
                 'user_id' => $user,
             ]);
+
+            // Update saldo wallet
+            if ($this->transactionType === 'topup') {
+                $wallet->balance += $this->nominal;
+            } elseif ($this->transactionType === 'payment') {
+                $wallet->balance -= $this->nominal;
+            }
+
+            $wallet->save();
+
             $this->dispatch('success', message: 'Transaksi berhasil disimpan.');
             $this->dispatch('refreshDatatable');
             $this->close();
@@ -130,10 +138,12 @@ class TransactionModal extends Component
     public function render()
     {
         $cekDefault = '';
+
         if (auth()->user()->role == 'pengelola') {
             $cekPartner = PartnerUser::where('user_id', Auth::user()->id)->first();
             $cekDefault = Partner::where('id', $cekPartner->partner_id)->first();
         }
+
         return view('livewire.transaction-modal', ['cekDefault' => $cekDefault]);
     }
 }

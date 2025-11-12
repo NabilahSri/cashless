@@ -16,7 +16,7 @@ class WalletTable extends DataTableComponent
         $this->setSortingPillsDisabled();
         $this->setDefaultSort('created_at', 'desc');
         $this->setPrimaryKey('id');
-        $this->setAdditionalSelects(['wallets.id']);
+        $this->setAdditionalSelects(['wallets.id', 'balance']);
     }
 
     public function builder(): Builder
