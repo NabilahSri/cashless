@@ -40,7 +40,7 @@ class PartnerController extends Controller
     public function store(Request $request)
     {
         $validateData = $request->validate([
-            'name' => 'required',
+            'name' => 'required|unique:partners,name',
             'email' => 'required|email|unique:partners,email',
             'phone' => 'required',
             'address' => 'required',
@@ -99,7 +99,7 @@ class PartnerController extends Controller
     {
         $partner = Partner::find($id);
         $validateData = $request->validate([
-            'name' => 'required',
+            'name' => 'required|' . Rule::unique('partners')->ignore($partner->id),
             'email' => 'required|email|' . Rule::unique('partners')->ignore($partner->id),
             'phone' => 'required',
             'address' => 'required',

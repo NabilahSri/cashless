@@ -15,7 +15,7 @@ return new class extends Migration
             $table->char('id', 36)->primary();
             $table->string('name');
             $table->char('partner_id', 36);
-            $table->integer('device_id')->unique();
+            $table->string('device_id')->unique();
             $table->timestamps();
 
             $table->foreign('partner_id')->references('id')->on('partners')->onDelete('cascade');

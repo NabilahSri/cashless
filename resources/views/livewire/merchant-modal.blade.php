@@ -10,7 +10,8 @@
                     <div>
                         <label class="block text-sm mb-1">Partner</label>
                         <!-- Select -->
-                        <select wire:model.defer="partner_id" wire:key="select-partner"
+                        <select wire:model.defer="partner_id" wire:change="generateDeviceId($event.target.value)"
+                            wire:change="updatedPartnerId($event.target.value)"
                             data-hs-select='{
                                             "hasSearch": true,
                                             "searchPlaceholder": "Search...",
@@ -50,8 +51,8 @@
                     <!-- Device ID -->
                     <div>
                         <label class="block text-sm mb-1">Device ID</label>
-                        <input wire:model.defer="device_id" type="number"
-                            class="w-full rounded-lg border-gray-300 dark:bg-gray-900 dark:border-gray-700" />
+                        <input wire:model.defer="device_id" type="text"
+                            class="w-full rounded-lg border-gray-300 dark:bg-gray-900 dark:border-gray-700" readonly />
                         @error('device_id')
                             <span class="text-red-600 text-xs">{{ $message }}</span>
                         @enderror
