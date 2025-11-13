@@ -82,12 +82,18 @@ class AccountController extends Controller
         $user = User::findOrFail($id);
         $user->update(['name' => $request->name]);
         $member = Member::where('user_id', $user->id)->first();
-        $member->update([
+        $memberData = [
             'name' => $request->name,
             'email' => $request->email,
             'phone' => $request->phone,
             'address' => $request->address,
-        ]);
+        ];
+
+        if ($request->filled('pin')) {
+            $memberData['pin'] = bcrypt($request->input('pin'));
+        }
+
+        $member->update($memberData);
         return redirect()->back()->with('success', 'Informasi pribadi berhasil diperbarui.');
     }
 }

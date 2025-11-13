@@ -10,6 +10,7 @@ use App\Models\PartnerUser;
 use App\Models\Transaction;
 use App\Models\Wallet;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 use function Symfony\Component\Clock\now;
 
@@ -20,6 +21,7 @@ class TransactionModal extends Component
     public $member;
     public $nominal;
     public $deskripsi;
+    public $pin;
     public $transactionType = '';
     public $currentBalance = 0;
 
@@ -42,6 +44,7 @@ class TransactionModal extends Component
         $this->member = null;
         $this->nominal = '';
         $this->deskripsi = '';
+        $this->pin;
         $this->transactionType = '';
         $this->currentBalance = 0;
     }
@@ -103,6 +106,21 @@ class TransactionModal extends Component
         }
 
         try {
+
+            $member = Member::where('member_no', $this->memberId)->first();
+            if (!$member) {
+                session()->flash('error', 'Member tidak ditemukan.');
+                return;
+            }
+            $wallet = $member->wallet;
+            $user = auth()->user()->id;
+            if (!Hash::check($this->pin, $member->pin)) {
+
+                // Jika PIN tidak cocok
+                session()->flash('error', 'PIN transaksi salah. Transaksi gagal.');
+                return; // Hentikan proses transaksi
+            }
+
             // Generate ID Transaksi
             $datePart = now()->format('dmY');
             $todayCount = Transaction::whereDate('created_at', today())->count();

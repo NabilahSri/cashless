@@ -190,6 +190,19 @@
                     </div>
 
                     <div>
+                        <label for="pin"
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">PIN</label>
+                        <input type="password" name="pin" id="pin"
+                            class="w-full rounded-lg border border-gray-300 p-3 text-gray-900 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                            placeholder="Masukkan Nomor Pin">
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Kosongkan jika tidak ingin mengubah
+                            pin.</p>
+                        @error('pin')
+                            <p class="mt-2 text-sm text-red-600 dark:text-red-500">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
                         <label for="address"
                             class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Alamat Lengkap</label>
                         <textarea name="address" id="address" rows="3"

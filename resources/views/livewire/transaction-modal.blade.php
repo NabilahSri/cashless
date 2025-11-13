@@ -107,6 +107,20 @@
                                 <textarea id="deskripsi" wire:model.defer="deskripsi" rows="3" placeholder="Contoh: Pembelian produk..."
                                     class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"></textarea>
                             </div>
+
+                            <div>
+                                <label for="pin"
+                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    PIN Member
+                                </label>
+                                <input type="password" id="pin" placeholder="Masukkan pin member"
+                                    wire:model.defer="pin"
+                                    class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
+
+                                @error('pin')
+                                    <span class="text-sm text-red-500">{{ $message }}</span>
+                                @enderror
+                            </div>
                         </div>
                     @endif
 
