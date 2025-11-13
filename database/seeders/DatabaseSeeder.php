@@ -41,6 +41,7 @@ class DatabaseSeeder extends Seeder
                 'phone' => $faker->phoneNumber,
                 'address' => $faker->address,
                 'card_uid' => $faker->uuid,
+                'pin' => bcrypt('12345678'),
                 'status' => 'active',
                 'created_at' => now(),
                 'updated_at' => now(),

@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('phone');
             $table->text('address');
             $table->string('card_uid')->unique();
+            $table->string('pin');
             $table->enum('status', ['active', 'inactive'])->default('active');
             $table->timestamps();
 

@@ -79,6 +79,7 @@ class MemberController extends Controller
                     'email' => $validatedData['email'],
                     'phone' => $validatedData['phone'],
                     'card_uid' => $validatedData['card_uid'],
+                    'pin' => bcrypt('12345678'),
                     'address' => $validatedData['address'],
                 ];
                 $newMember = Member::create($memberData);
@@ -128,6 +129,7 @@ class MemberController extends Controller
             'address'   => 'required|string',
             'username'  => 'required|string|max:100|' . Rule::unique('users')->ignore($member->user_id),
             'password'  => 'nullable|string',
+            'pin'       => 'nullable|string',
         ]);
         try {
             DB::transaction(function () use ($validatedData, $member, $request) {
@@ -138,15 +140,20 @@ class MemberController extends Controller
                 if ($request->filled('password')) {
                     $userData['password'] = bcrypt($request->input('password'));
                 }
+
                 $member->user->update($userData);
-                $member->update([
+                $memberData = [
                     'member_no' => $validatedData['member_no'],
                     'name'      => $userData['name'],
                     'email'    => $validatedData['email'],
                     'phone'     => $validatedData['phone'],
                     'card_uid'  => $validatedData['card_uid'],
                     'address'   => $validatedData['address'],
-                ]);
+                ];
+                if ($request->filled('pin')) {
+                    $memberData['pin'] = bcrypt($request->input('pin'));
+                }
+                $member->update($memberData);
             });
             return redirect()->route('member.index')->with('success', 'Data member berhasil diperbarui.');
         } catch (\Exception $e) {

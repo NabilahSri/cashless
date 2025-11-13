@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Exports\TransactionExport;
+use App\Models\Member;
 use App\Models\Merchant;
 use App\Models\PartnerUser;
 use Rappasoft\LaravelLivewireTables\DataTableComponent;
@@ -12,6 +13,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 use Rappasoft\LaravelLivewireTables\Views\Filters\SelectFilter;
 use App\Models\User;
+use App\Models\Wallet;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -37,6 +39,11 @@ class TransactionTable extends DataTableComponent
             $partner_id = PartnerUser::where('user_id', Auth::user()->id)->pluck('partner_id');
             $merchant_id = Merchant::where('partner_id', $partner_id)->pluck('id');
             return Transaction::whereIn('merchant_id', $merchant_id)->with(['user', 'wallet.member']);
+        }
+        if (Auth::user()->role == 'member') {
+            $member_id = Member::where('user_id', Auth::user()->id)->pluck('id');
+            $wallet_id = Wallet::where('member_id', $member_id)->pluck('id');
+            return Transaction::whereIn('wallet_id', $wallet_id)->with(['user', 'wallet.member']);
         }
         return Transaction::query()->with(['user', 'wallet.member']);
     }

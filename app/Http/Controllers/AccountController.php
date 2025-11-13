@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Member;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -12,7 +13,8 @@ class AccountController extends Controller
      */
     public function index()
     {
-        return view('v_page.account.index', ['page' => 'pengaturan profil', 'pageName' => 'Pengaturan Profil', 'selected' => 'Pengaturan Profil']);
+        $member = Member::where('user_id', auth()->user()->id)->first();
+        return view('v_page.account.index', ['page' => 'pengaturan profil', 'pageName' => 'Pengaturan Profil', 'selected' => 'Pengaturan Profil', 'member' => $member]);
     }
 
     /**
@@ -53,12 +55,10 @@ class AccountController extends Controller
     public function update(Request $request, string $id)
     {
         $validatedData = $request->validate([
-            'name' => 'required',
             'username' => 'required',
             'password'  => 'nullable|string',
         ]);
         $userData = [
-            'name' => $validatedData['name'],
             'username' => $validatedData['username'],
         ];
         if ($request->filled('password')) {
@@ -75,5 +75,19 @@ class AccountController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    public function personalInformation($id, Request $request)
+    {
+        $user = User::findOrFail($id);
+        $user->update(['name' => $request->name]);
+        $member = Member::where('user_id', $user->id)->first();
+        $member->update([
+            'name' => $request->name,
+            'email' => $request->email,
+            'phone' => $request->phone,
+            'address' => $request->address,
+        ]);
+        return redirect()->back()->with('success', 'Informasi pribadi berhasil diperbarui.');
     }
 }

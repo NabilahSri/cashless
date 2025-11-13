@@ -91,18 +91,21 @@
                 <!-- Menu Item Partner -->
             @endif
 
-            <li>
-                <a href="{{ route('partner.index') }}" @click="selected = (selected === 'Partner' ? '':'Partner')"
-                    class="menu-item group"
-                    :class="(selected === 'Partner') && (page === 'partner') ? 'menu-item-active' : 'menu-item-inactive'">
-                    <i class="fa-solid fa-handshake text-xl"></i>
+            @if (auth()->user()->role !== 'member')
+                <!-- Menu Item Partner -->
+                <li>
+                    <a href="{{ route('partner.index') }}" @click="selected = (selected === 'Partner' ? '':'Partner')"
+                        class="menu-item group"
+                        :class="(selected === 'Partner') && (page === 'partner') ? 'menu-item-active' : 'menu-item-inactive'">
+                        <i class="fa-solid fa-handshake text-xl"></i>
 
-                    <span class="menu-item-text" :class="sidebarToggle ? 'xl:hidden' : ''">
-                        Partner
-                    </span>
-                </a>
-            </li>
-            <!-- Menu Item Dashboard -->
+                        <span class="menu-item-text" :class="sidebarToggle ? 'xl:hidden' : ''">
+                            Partner
+                        </span>
+                    </a>
+                </li>
+                <!-- Menu Item Partner -->
+            @endif
 
             @if (auth()->user()->role == 'admin')
                 <!-- Menu Item Lokasi -->

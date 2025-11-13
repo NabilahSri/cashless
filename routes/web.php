@@ -39,4 +39,5 @@ Route::middleware(['cekAuth'])->group(function () {
     Route::resource('/transaction', TransactionController::class);
 
     Route::resource('/akun', AccountController::class);
+    Route::post('/personal-information/{id}', [AccountController::class, 'personalInformation'])->name('personalInformation');
 });
