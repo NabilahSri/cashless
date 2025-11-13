@@ -25,7 +25,7 @@ class PengelolaTable extends DataTableComponent
     {
         $partner_id = PartnerUser::where('user_id', Auth::user()->id)->pluck('partner_id');
         $pengelola = PartnerUser::where('partner_id', $partner_id)->pluck('user_id');
-        return User::whereIn('id', $pengelola);
+        return User::query()->whereIn('id', $pengelola);
     }
 
     public function columns(): array

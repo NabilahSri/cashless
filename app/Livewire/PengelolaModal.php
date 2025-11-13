@@ -85,7 +85,7 @@ class PengelolaModal extends Component
             $this->dispatch('success', message: 'User berhasil diupdate.');
         }
         $this->show = false;
-        $this->dispatch('refreshDatatable')->to(PartnerTable::class);
+        $this->dispatch('refreshDatatable')->to(PengelolaTable::class);
     }
     public function render()
     {
