@@ -3,10 +3,12 @@
 namespace App\Livewire;
 
 use App\Exports\UsersExport;
+use App\Models\PartnerUser;
 use Rappasoft\LaravelLivewireTables\DataTableComponent;
 use Rappasoft\LaravelLivewireTables\Views\Column;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\On;
 use Maatwebsite\Excel\Facades\Excel;
 use Rappasoft\LaravelLivewireTables\Views\Filters\SelectFilter;
@@ -29,6 +31,11 @@ class UserTable extends DataTableComponent
 
     public function builder(): Builder
     {
+        if (auth()->user()->role == 'pengelola') {
+            $partner_id = PartnerUser::where('user_id', Auth::user()->id)->pluck('partner_id');
+            $pengelola = PartnerUser::where('partner_id', $partner_id)->pluck('user_id');
+            return User::whereIn('id', $pengelola);
+        }
         return User::query()
             ->whereIn('role', ['admin', 'pengelola']);
     }

@@ -59,10 +59,12 @@ class PartnerController extends Controller
             $partner = Partner::create($request->except('user_id'));
             $userIds = $request->input('user_id', [null]);
             $newPartnerId = $partner->id;
-            foreach ($userIds as $userId) {
+            foreach ($userIds as $index => $userId) {
+                $isAdmin = ($index === 0);
                 PartnerUser::create([
                     'partner_id' => $newPartnerId,
                     'user_id' => $userId,
+                    'is_admin' => $isAdmin
                 ]);
             }
             DB::commit();

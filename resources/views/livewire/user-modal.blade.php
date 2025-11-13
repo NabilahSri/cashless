@@ -42,7 +42,9 @@
                         <select wire:model.defer="role"
                             class="w-full rounded-lg border-gray-300 dark:bg-gray-900 dark:border-gray-700">
                             <option value="">-- Pilih Hak Akses --</option>
-                            <option value="admin">Admin</option>
+                            @if (auth()->user()->role == 'admin')
+                                <option value="admin">Admin</option>
+                            @endif
                             <option value="pengelola">Pengelola</option>
                         </select>
                         @error('role')

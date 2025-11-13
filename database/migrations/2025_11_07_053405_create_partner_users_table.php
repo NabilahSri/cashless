@@ -15,6 +15,7 @@ return new class extends Migration
             $table->char('id', 36)->primary();
             $table->char('partner_id', 36);
             $table->char('user_id', 36)->nullable();
+            $table->boolean('is_admin')->default(false);
             $table->timestamps();
 
             $table->foreign('partner_id')->references('id')->on('partners')->onDelete('cascade');
