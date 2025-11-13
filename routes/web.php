@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LogActivityController;
@@ -36,4 +37,6 @@ Route::middleware(['cekAuth'])->group(function () {
     Route::resource('/log-activity', LogActivityController::class);
 
     Route::resource('/transaction', TransactionController::class);
+
+    Route::resource('/akun', AccountController::class);
 });

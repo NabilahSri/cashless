@@ -148,10 +148,10 @@ class MemberController extends Controller
                     'address'   => $validatedData['address'],
                 ]);
             });
+            return redirect()->route('member.index')->with('success', 'Data member berhasil diperbarui.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal memperbarui data: ' . $e->getMessage())->withInput();
         }
-        return redirect()->route('member.index')->with('success', 'Data member berhasil diperbarui.');
     }
 
     /**
