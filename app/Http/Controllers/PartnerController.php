@@ -120,7 +120,8 @@ class PartnerController extends Controller
             $partner->update($request->except('user_id'));
             $userIds = $request->input('user_id', [null]);
             PartnerUser::where('partner_id', $id)->delete();
-            foreach ($userIds as $userId) {
+            foreach ($userIds as $index => $userId) {
+                $isAdmin = ($index === 0);
                 PartnerUser::create([
                     'partner_id' => $id,
                     'user_id' => $userId,
