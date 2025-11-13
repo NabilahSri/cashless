@@ -125,6 +125,7 @@ class PartnerController extends Controller
                 PartnerUser::create([
                     'partner_id' => $id,
                     'user_id' => $userId,
+                    'is_admin' => $isAdmin
                 ]);
             }
             DB::commit();
