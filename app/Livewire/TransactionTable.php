@@ -24,7 +24,7 @@ class TransactionTable extends DataTableComponent
         $this->setSortingPillsDisabled();
         $this->setDefaultSort('created_at', 'desc');
         $this->setPrimaryKey('id');
-        $this->setAdditionalSelects(['transactions.id']);
+        $this->setAdditionalSelects(['transactions.id', 'amount', 'type']);
         $this->setFilterLayout('slide-down');
         $this->setBulkActions([
             'exportSelected' => 'Download Data (Excel)',
@@ -83,8 +83,16 @@ class TransactionTable extends DataTableComponent
                 ->searchable(),
             Column::make("Pengelola", "user.name")
                 ->searchable(),
-            Column::make("Tipe", "type"),
+            Column::make("Tipe", "type")
+                ->label(function ($row) {
+                    if ($row->type === 'payment') {
+                        return 'Pembayaran';
+                    } elseif ($row->type === 'topup') {
+                        return 'Top Up';
+                    }
+                }),
             Column::make("Nominal", "amount")
+                ->label(fn($row) => 'Rp ' . number_format($row->amount, 0, ',', '.'))
                 ->sortable(),
         ];
     }
