@@ -133,7 +133,7 @@
                     <i class="fa-solid fa-dollar-sign text-xl"></i>
 
                     <span class="menu-item-text" :class="sidebarToggle ? 'xl:hidden' : ''">
-                        Histori Transaksi
+                        Transaksi
                     </span>
                 </a>
             </li>

@@ -11,13 +11,7 @@
                             Tambah Data
                         </a>
                     @endif
-                    @if (auth()->user()->role == 'pengelola')
-                        <button type="button" x-data @click="$dispatch('openTransactionModal')"
-                            class="inline-flex gap-2 items-center justify-center rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all duration-200 ease-in-out hover:scale-105 hover:bg-green-700 focus:outline-none focus:ring-2 dark:bg-green-500 dark:hover:bg-green-400 dark:hover:scale-105">
-                            <i class="fa-solid fa-cash-register"></i>
-                            Transaksi
-                        </button>
-                    @endif
+
                 </div>
             </div>
             <div class="border-t border-gray-100 p-5 sm:p-6 dark:border-gray-800">
@@ -32,5 +26,4 @@
 @endsection
 @push('modals')
     <livewire:partner-modal />
-    <livewire:transaction-modal />
 @endpush
