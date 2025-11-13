@@ -11,6 +11,8 @@ use App\Models\Transaction;
 use App\Models\Wallet;
 use Illuminate\Support\Facades\Auth;
 
+use function Symfony\Component\Clock\now;
+
 class TransactionModal extends Component
 {
     public $showModal = false;
@@ -121,6 +123,7 @@ class TransactionModal extends Component
             // Update saldo wallet
             if ($this->transactionType === 'topup') {
                 $wallet->balance += $this->nominal;
+                $wallet->last_topup_at = now();
             } elseif ($this->transactionType === 'payment') {
                 $wallet->balance -= $this->nominal;
             }
