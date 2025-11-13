@@ -6,7 +6,7 @@
     <meta name="viewport"
         content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>Sign In | TailAdmin - Tailwind CSS Admin Dashboard Template</title>
+    <title>Masuk | PaySaku - Sistem Manajemen Transaksi Cashless</title>
     <link rel="icon" href="favicon.ico" />
     <link href="{{ asset('css/style.css') }}" rel="stylesheet" />
 </head>
