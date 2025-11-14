@@ -82,7 +82,7 @@ class TransactionController extends Controller
             'memberId' => 'required|string|exists:members,member_no',
             'nominal' => 'required|numeric|min:1',
             'transactionType' => 'required|string',
-            // 'deskripsi' => 'nullable|string|max:255',
+            'deskripsi' => 'nullable',
             'pin' => 'required|string',
         ]);
 

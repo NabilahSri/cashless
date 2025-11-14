@@ -1,7 +1,7 @@
 {{-- Asumsikan Anda memiliki layout utama, sesuaikan jika perlu --}}
-@extends('template') {{-- Ganti ini dengan nama layout Anda --}}
+@extends('template') {{-- Sesuai file Anda --}}
 
-@section('content') {{-- Ganti ini dengan nama section Anda --}}
+@section('content') {{-- Sesuai file Anda --}}
     <div class="space-y-5 sm:space-y-6">
         <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
             <div class="px-5 py-4 sm:px-6 sm:py-5 flex items-center justify-between">
@@ -72,16 +72,18 @@
 
 
 
-                        {{-- Input Nominal --}}
+                        {{-- Input Nominal (Baru dengan pemformatan) --}}
                         <div>
-                            <label for="nominal" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <label for="nominal_display" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Nominal Transaksi
                             </label>
-                            {{-- PERHATIAN: Pemformatan mata uang otomatis (x-data) hilang --}}
-                            {{-- Pengguna harus memasukkan angka mentah (misal: 50000) --}}
-                            <input type="number" id="nominal" name="nominal" value="{{ old('nominal') }}"
-                                placeholder="Contoh: 50000 (tanpa titik atau Rp)"
+
+                            {{-- Input yang dilihat pengguna (display) --}}
+                            <input type="text" id="nominal_display" placeholder="Contoh: Rp 50.000"
                                 class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
+
+                            {{-- Input yang dikirim ke server (hidden) --}}
+                            <input type="hidden" id="nominal" name="nominal" value="{{ old('nominal') }}" />
 
                             @error('nominal')
                                 <span class="text-sm text-red-500">{{ $message }}</span>
@@ -154,3 +156,54 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+    {{-- Asumsikan layout 'template' Anda memiliki @stack('scripts') --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const nominalDisplay = document.getElementById('nominal_display');
+            const nominalHidden = document.getElementById('nominal');
+
+            if (!nominalDisplay || !nominalHidden) return;
+
+            // Formatter untuk Rupiah
+            const formatter = new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            });
+
+            // Fungsi untuk menangani input
+            function handleInput(e) {
+                // 1. Ambil nilai, bersihkan dari selain angka
+                let rawValue = e.target.value.replace(/\D/g, '');
+
+                // 2. Update input tersembunyi dengan nilai mentah
+                nominalHidden.value = rawValue;
+
+                // 3. Format nilai dan tampilkan di input display
+                if (rawValue) {
+                    // Konversi ke angka dulu untuk formatting
+                    let numberValue = parseInt(rawValue, 10);
+                    let formattedValue = formatter.format(numberValue);
+
+                    // Set nilai display
+                    e.target.value = formattedValue;
+                } else {
+                    e.target.value = '';
+                }
+            }
+
+            // Tambahkan event listener
+            nominalDisplay.addEventListener('input', handleInput);
+
+            // Cek jika ada nilai lama (misal dari validasi error)
+            if (nominalHidden.value) {
+                let rawValue = nominalHidden.value;
+                let numberValue = parseInt(rawValue, 10);
+                nominalDisplay.value = formatter.format(numberValue);
+            }
+        });
+    </script>
+@endpush
