@@ -19,7 +19,7 @@ return new class extends Migration
             $table->char('merchant_id', 36);
             $table->string('type');
             $table->integer('amount');
-            $table->text('description');
+            $table->text('description')->nullable();
             $table->timestamps();
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('wallet_id')->references('id')->on('wallets')->onDelete('cascade');
