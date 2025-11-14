@@ -150,9 +150,8 @@
             <!-- Menu Item Partner -->
             <li>
                 <a href="{{ route('transaction.index') }}"
-                    @click="selected = (selected === 'Histori Transaksi' ? '':'Histori Transaksi')"
-                    class="menu-item group"
-                    :class="(selected === 'Histori Transaksi') && (page === 'history-transaksi') ? 'menu-item-active' :
+                    @click="selected = (selected === 'Transaksi' ? '':'Transaksi')" class="menu-item group"
+                    :class="(selected === 'Transaksi') && (page === 'transaksi') ? 'menu-item-active' :
                     'menu-item-inactive'">
                     <i class="fa-solid fa-dollar-sign text-xl"></i>
 
