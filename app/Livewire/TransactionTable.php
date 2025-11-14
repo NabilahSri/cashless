@@ -16,6 +16,7 @@ use App\Models\User;
 use App\Models\Wallet;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
+use Rappasoft\LaravelLivewireTables\Views\Filters\DateRangeFilter;
 
 class TransactionTable extends DataTableComponent
 {
@@ -61,6 +62,25 @@ class TransactionTable extends DataTableComponent
                     $builder->where('type', $value);
                 }),
         ];
+
+        $filters[] =  DateRangeFilter::make('Tanggal Transaksi')
+            ->config([
+                'allowInput' => true,  // Allow manual input of dates
+                'altFormat' => 'F j, Y', // Date format that will be displayed once selected
+                'ariaDateFormat' => 'F j, Y', // An aria-friendly date format
+                'dateFormat' => 'Y-m-d', // Date format that will be received by the filter
+                'earliestDate' => '2000-01-01', // The earliest acceptable date
+                'latestDate' => today()->toDateString(), // PERBAIKAN: Menggunakan tanggal hari ini
+                'placeholder' => 'Masukkan Rentang Tanggal', // PERBAIKAN: Diubah ke Bahasa Indonesia
+                'locale' => 'id',
+            ])
+            ->setFilterPillValues([0 => 'minDate', 1 => 'maxDate']) // The values that will be displayed for the Min/Max Date Values
+            ->filter(function (Builder $builder, array $dateRange) { // Expects an array.
+                $builder
+                    // PERBAIKAN: Menggunakan kolom 'created_at' dari tabel transaksi
+                    ->whereDate('transactions.created_at', '>=', $dateRange['minDate']) // minDate is the start date selected
+                    ->whereDate('transactions.created_at', '<=', $dateRange['maxDate']); // maxDate is the end date selected
+            });
 
         if (Auth::user()->role === 'admin') {
             $filters[] = SelectFilter::make('Pengelola')
