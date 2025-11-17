@@ -3,6 +3,9 @@
 namespace Database\Seeders;
 
 use App\Models\Member;
+use App\Models\Merchant;
+use App\Models\Partner;
+use App\Models\PartnerUser;
 use App\Models\User;
 use App\Models\Wallet;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -54,5 +57,41 @@ class DatabaseSeeder extends Seeder
                 'updated_at' => now(),
             ]);
         }
+
+        $user = User::create([
+            'name' => "Pengelola Admin",
+            'username' => 'adminpengelola',
+            'password' => bcrypt('12341234'),
+            'role' => 'pengelola',
+            'remember_token' => null,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $partner = Partner::create([
+            'name' => 'Partner Utama',
+            'address' => 'Jl. Partner No.1, Kota Contoh',
+            'phone' => '081234567890',
+            'email' => 'bVd7o@example.com',
+            'status' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $userPartner = PartnerUser::create([
+            'partner_id' => $partner->id,
+            'user_id' => $user->id,
+            'is_admin' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $merchant = Merchant::create([
+            'name' => 'Merchant Utama',
+            'partner_id' => $partner->id,
+            'device_id' => '122-222',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
     }
 }
