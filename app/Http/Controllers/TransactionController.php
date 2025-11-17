@@ -26,7 +26,6 @@ class TransactionController extends Controller
 
     /**
      * Show the form for creating a new resource.
-     * Ini akan menangani tampilan form awal DAN tampilan setelah member dicari.
      */
     public function create(Request $request)
     {
@@ -36,11 +35,12 @@ class TransactionController extends Controller
             'selected' => 'Transaksi',
             'member' => null,
             'currentBalance' => 0,
-            'memberId' => $request->query('memberId', ''), // Ambil memberId dari query string
+            'memberId' => null,
+            'cardUid' => null,
+            'qrCode' => null,
             'cekDefault' => ''
         ];
 
-        // Cek $cekDefault (logika dari method render Livewire)
         if (auth()->user()->role == 'pengelola') {
             $cekPartner = PartnerUser::where('user_id', Auth::user()->id)->first();
             if ($cekPartner) {
@@ -48,36 +48,54 @@ class TransactionController extends Controller
             }
         }
 
-        // Jika ada memberId di query string, coba cari member
-        if ($data['memberId']) {
-            $member = Member::where('member_no', $data['memberId'])->first();
+        $member = null;
+        $searchInput = null;
+        $searchPerformed = false;
+        $activeSearchTab = 'member';
 
-            if (!$member) {
-                // Jika member tidak ditemukan, kembali dengan error
-                return redirect()->route('transaction.create')
-                    ->with('error', 'Member tidak ditemukan.');
-            }
+        if ($request->has('memberId') && $request->filled('memberId')) {
+            $searchInput = $request->memberId;
+            $data['memberId'] = $searchInput;
+            $member = Member::where('member_no', $searchInput)->first();
+            $searchPerformed = true;
+            $activeSearchTab = 'member';
+        } elseif ($request->has('cardUid') && $request->filled('cardUid')) {
+            $searchInput = $request->cardUid;
+            $data['cardUid'] = $searchInput;
+            $member = Member::where('card_uid', $searchInput)->first();
+            $searchPerformed = true;
+            $activeSearchTab = 'card';
+        } elseif ($request->has('qrCode') && $request->filled('qrCode')) {
+            $searchInput = $request->qrCode;
+            $data['qrCode'] = $searchInput;
+            $member = Member::where('member_no', $searchInput)->first();
+            $searchPerformed = true;
+            $activeSearchTab = 'qr';
+        }
 
-            // Member ditemukan, dapatkan saldo
+        if ($member) {
             $data['member'] = $member;
             $wallet = Wallet::where('member_id', $member->id)->first();
             if ($wallet) {
                 $data['currentBalance'] = $wallet->balance ?? 0;
             }
+        } elseif ($searchPerformed && !$member) {
+            session()->flash('error', 'Member tidak ditemukan.');
         }
+
+        $data['activeSearchTab'] = $activeSearchTab;
 
         return view('v_page.transaction.create', $data);
     }
 
+
     /**
      * Store a newly created resource in storage.
-     * Ini akan menangani logika saveTransaction.
      */
     public function store(Request $request)
     {
         $user = Auth::user()->id;
 
-        // Validasi
         $validator = Validator::make($request->all(), [
             'memberId' => 'required|string|exists:members,member_no',
             'nominal' => 'required|numeric|min:1',
@@ -92,18 +110,15 @@ class TransactionController extends Controller
                 ->withInput();
         }
 
-        // Ambil data member berdasarkan memberId yang di-submit
         $member = Member::where('member_no', $request->input('memberId'))->first();
         if (!$member) {
             return redirect()->back()->withInput()->with('error', 'Member tidak valid.');
         }
 
-        // Cek PIN
         if (!Hash::check($request->input('pin'), $member->pin)) {
             return redirect()->back()->withInput()->with('error', 'PIN transaksi salah. Transaksi gagal.');
         }
 
-        // Ambil data lain (wallet, partner, merchant)
         $wallet = Wallet::where('member_id', $member->id)->first();
         if (!$wallet) {
             return redirect()->back()->withInput()->with('error', 'Gagal! Wallet untuk member ini tidak ditemukan.');
@@ -119,19 +134,16 @@ class TransactionController extends Controller
             return redirect()->back()->withInput()->with('error', 'Gagal! Merchant untuk partner Anda tidak ditemukan.');
         }
 
-        // Cek saldo sebelum pembayaran
         if ($request->input('transactionType') === 'payment' && $request->input('nominal') > $wallet->balance) {
             return redirect()->back()->withInput()->with('error', 'Transaksi Gagal! Saldo member tidak mencukupi (Saldo: Rp ' . number_format($wallet->balance, 0, ',', '.') . ').');
         }
 
         try {
-            // Generate ID Transaksi
             $datePart = now()->format('dmY');
             $todayCount = Transaction::whereDate('created_at', today())->count();
             $numberPart = str_pad($todayCount + 1, 3, '0', STR_PAD_LEFT);
             $generatedTrxId = 'TRX' . $datePart . $numberPart;
 
-            // Simpan transaksi
             Transaction::create([
                 'trx_id' => $generatedTrxId,
                 'wallet_id' => $wallet->id,
@@ -142,7 +154,6 @@ class TransactionController extends Controller
                 'user_id' => $user,
             ]);
 
-            // Update saldo wallet
             if ($request->input('transactionType') === 'topup') {
                 $wallet->balance += $request->input('nominal');
                 $wallet->last_topup_at = now();
@@ -152,14 +163,12 @@ class TransactionController extends Controller
 
             $wallet->save();
 
-            // Redirect ke halaman create (form kosong) dengan pesan sukses
             return redirect()->route('transaction.create')->with('success', 'Transaksi berhasil disimpan.');
         } catch (\Exception $e) {
             return redirect()->back()->withInput()->with('error', 'Gagal menyimpan transaksi: ' . $e->getMessage());
         }
     }
 
-    // Metode lain (show, edit, update, destroy) tetap sama
     /**
      * Display the specified resource.
      */
