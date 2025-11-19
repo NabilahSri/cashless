@@ -19,7 +19,7 @@ class PartnerTable extends DataTableComponent
         $this->setSortingPillsDisabled();
         $this->setDefaultSort('created_at', 'desc');
         $this->setPrimaryKey('id');
-        $this->setAdditionalSelects(['id', 'status']);
+        $this->setAdditionalSelects(['id', 'status', 'komisi']);
     }
 
     public function builder(): Builder
@@ -42,6 +42,10 @@ class PartnerTable extends DataTableComponent
             Column::make("No. Telp", "phone")
                 ->searchable(),
             Column::make("Alamat", "address"),
+            Column::make("Komisi", "komisi")
+                ->label(
+                    fn($row) => $row->komisi . '%'
+                ),
             Column::make("Tanggal Bergabung", "created_at")
                 ->sortable(),
             Column::make('status', 'status')

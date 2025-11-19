@@ -15,6 +15,7 @@
     @vite('resources/css/app.css')
     @vite('resources/js/app.js')
     @livewireStyles
+    @stack('styles')
 </head>
 
 <body x-data="{ selected: '{{ $selected ?? 'Dashboard' }}', page: '{{ $page ?? 'dashboard' }}', 'loaded': true, 'darkMode': false, 'stickyMenu': false, 'sidebarToggle': false, 'scrollTop': false, 'menuToggle': false }" x-init="darkMode = JSON.parse(localStorage.getItem('darkMode'));
@@ -76,7 +77,6 @@ $watch('darkMode', value => localStorage.setItem('darkMode', JSON.stringify(valu
         <!-- ===== Content Area End ===== -->
     </div>
     <!-- ===== Page Wrapper End ===== -->
-    {{-- <script src="{{ asset('js/bundle.js') }}"></script> --}}
     <script data-cfasync="false" src="{{ asset('cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js') }}">
     </script>
     @livewireScripts

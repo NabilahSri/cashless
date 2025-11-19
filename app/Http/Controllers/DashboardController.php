@@ -23,17 +23,18 @@ class DashboardController extends Controller
             $transaksi = Transaction::where('wallet_id', $wallet->id)->get();
             return view('v_page.dahsboard.dashboard-member', ['page' => 'dashboard', 'pageName' => 'Dashboard', 'member' => $member, 'wallet' => $wallet, 'pemasukan' => $pemasukan, 'pengeluaran' => $pengeluaran, 'transaksi' => $transaksi]);
         } else if (auth()->user()->role == 'pengelola') {
+            $diri = PartnerUser::where('user_id', auth()->user()->id)->first();
             $partner = PartnerUser::where('user_id', auth()->user()->id)->first();
             $merchant = Merchant::where('partner_id', $partner->partner_id)->first();
             $pemasukan = Transaction::where('merchant_id', $merchant->id)->where('type', 'payment')->sum('amount');
             $total_pengelola = PartnerUser::where('partner_id', $partner->partner_id)->count();
             $pemasukan_hari_ini = Transaction::where('merchant_id', $merchant->id)->where('type', 'payment')->whereDate('created_at', now()->today())->sum('amount');
-            return view('v_page.dahsboard.dashboard-pengelola', ['page' => 'dashboard', 'pageName' => 'Dashboard', 'pemasukan' => $pemasukan, 'total_pengelola' => $total_pengelola, 'pemasukan_hari_ini' => $pemasukan_hari_ini]);
+            return view('v_page.dahsboard.dashboard-pengelola', ['page' => 'dashboard', 'pageName' => 'Dashboard', 'pemasukan' => $pemasukan, 'total_pengelola' => $total_pengelola, 'pemasukan_hari_ini' => $pemasukan_hari_ini, 'diri' => $diri]);
         } else {
             $data['admin'] = User::where('role', 'admin')->count();
             $data['pengelola'] = User::where('role', 'Pengelola')->count();
             $member = User::where('role', 'member')->get();
-            $data['member_aktif'] = Member::whereIn('user_id', $member->pluck('id'))->where('status', 'active')->count();
+            $data['member_aktif'] = Member::whereIn('user_id', $member->pluck('id'))->where('status_member', 'active')->count();
             $data['partner'] = Partner::count();
             $data['pemasukan_hari_ini'] = Transaction::where('type', 'payment')->whereDate('created_at', now()->today())->sum('amount');
             $data['pemasukan'] = Transaction::where('type', 'payment')->sum('amount');

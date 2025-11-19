@@ -7,9 +7,13 @@ use App\Models\Member;
 use App\Models\Merchant;
 use App\Models\Partner;
 use App\Models\PartnerUser;
+use App\Models\QRToken;
 use App\Models\Transaction;
 use App\Models\Wallet;
+use Carbon\Carbon;
+use DateTime;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use function Symfony\Component\Clock\now;
@@ -34,11 +38,14 @@ class TransactionController extends Controller
             'pageName' => 'Transaksi',
             'selected' => 'Transaksi',
             'member' => null,
-            'currentBalance' => 0,
+            'limitInfo' => null,
+            'usedAmount' => 0,
+            'remainingLimit' => 0,
             'memberId' => null,
             'cardUid' => null,
             'qrCode' => null,
-            'cekDefault' => ''
+            'cekDefault' => '',
+            'qrCodeToken' => null,
         ];
 
         if (auth()->user()->role == 'pengelola') {
@@ -51,7 +58,7 @@ class TransactionController extends Controller
         $member = null;
         $searchInput = null;
         $searchPerformed = false;
-        $activeSearchTab = 'member';
+        $activeSearchTab = 'card';
 
         if ($request->has('memberId') && $request->filled('memberId')) {
             $searchInput = $request->memberId;
@@ -68,17 +75,31 @@ class TransactionController extends Controller
         } elseif ($request->has('qrCode') && $request->filled('qrCode')) {
             $searchInput = $request->qrCode;
             $data['qrCode'] = $searchInput;
-            $member = Member::where('member_no', $searchInput)->first();
             $searchPerformed = true;
             $activeSearchTab = 'qr';
+            $token = QRToken::where('token', $searchInput)->first();
+            if (!$token) {
+                session()->flash('error', 'QR Code tidak valid atau tidak ditemukan.');
+                $member = null;
+            } elseif ($token->used_at) {
+                session()->flash('error', 'QR Code ini sudah pernah digunakan.');
+                $member = null;
+            } else {
+                $member = Member::where('id', $token->member_id)->first();
+                if (!$member) {
+                    session()->flash('error', 'Token valid, tapi data member terkait tidak ditemukan.');
+                } else {
+                    $data['qrCodeToken'] = $token->token;
+                }
+            }
         }
 
         if ($member) {
             $data['member'] = $member;
-            $wallet = Wallet::where('member_id', $member->id)->first();
-            if ($wallet) {
-                $data['currentBalance'] = $wallet->balance ?? 0;
-            }
+            $limitInfo = $this->calculateTransactionLimit($member);
+            $data['limitInfo'] = $limitInfo;
+            $data['usedAmount'] = $limitInfo['used_amount'];
+            $data['remainingLimit'] = $limitInfo['remaining_limit'];
         } elseif ($searchPerformed && !$member) {
             session()->flash('error', 'Member tidak ditemukan.');
         }
@@ -86,6 +107,78 @@ class TransactionController extends Controller
         $data['activeSearchTab'] = $activeSearchTab;
 
         return view('v_page.transaction.create', $data);
+    }
+
+    private function calculateTransactionLimit($member)
+    {
+        $limitType = $member->status_limit; // 'daily', 'weekly', 'monthly'
+        $limitAmount = $member->limit_transaction;
+
+        // Jika tidak ada limit, return unlimited
+        if ($limitType === 'no_limit') {
+            return [
+                'limit_type' => 'no_limit',
+                'limit_amount' => 0,
+                'used_amount' => 0,
+                'remaining_limit' => 0,
+                'period' => 'Tidak ada limit',
+                'is_exceeded' => false
+            ];
+        }
+
+        $now = Carbon::now();
+        $startDate = null;
+        $endDate = null;
+        $periodText = '';
+
+        // Tentukan rentang waktu berdasarkan jenis limit
+        switch ($limitType) {
+            case 'daily':
+                $startDate = $now->copy()->startOfDay();
+                $endDate = $now->copy()->endOfDay();
+                $periodText = 'Hari Ini';
+                break;
+
+            case 'weekly':
+                $startDate = $now->copy()->startOfWeek();
+                $endDate = $now->copy()->endOfWeek();
+                $periodText = 'Minggu Ini';
+                break;
+
+            case 'monthly':
+                $startDate = $now->copy()->startOfMonth();
+                $endDate = $now->copy()->endOfMonth();
+                $periodText = 'Bulan Ini';
+                break;
+
+            default:
+                $startDate = $now->copy()->startOfDay();
+                $endDate = $now->copy()->endOfDay();
+                $periodText = 'Hari Ini';
+                break;
+        }
+
+        $wallet = Wallet::where('member_id', $member->id)->first();
+
+        // Hitung total transaksi dalam periode tersebut
+        $usedAmount = Transaction::where('wallet_id', $wallet->id)
+            ->where('type', 'payment')
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->sum('amount');
+
+        $remainingLimit = max(0, $limitAmount - $usedAmount);
+        $isExceeded = $usedAmount >= $limitAmount;
+
+        return [
+            'limit_type' => $limitType,
+            'limit_amount' => $limitAmount,
+            'used_amount' => $usedAmount,
+            'remaining_limit' => $remainingLimit,
+            'period' => $periodText,
+            'is_exceeded' => $isExceeded,
+            'start_date' => $startDate,
+            'end_date' => $endDate
+        ];
     }
 
 
@@ -101,7 +194,8 @@ class TransactionController extends Controller
             'nominal' => 'required|numeric|min:1',
             'transactionType' => 'required|string',
             'deskripsi' => 'nullable',
-            'pin' => 'required|string',
+            'pin' => 'string|' . (Member::where('member_no', $request->input('memberId'))->first() && Member::where('member_no', $request->input('memberId'))->first()->status_pin == 'active' ? 'required' : 'nullable'),
+            'qrToken' => 'nullable|string|exists:qr_tokens,token',
         ]);
 
         if ($validator->fails()) {
@@ -115,8 +209,10 @@ class TransactionController extends Controller
             return redirect()->back()->withInput()->with('error', 'Member tidak valid.');
         }
 
-        if (!Hash::check($request->input('pin'), $member->pin)) {
-            return redirect()->back()->withInput()->with('error', 'PIN transaksi salah. Transaksi gagal.');
+        if ($member->pin == 'active') {
+            if (!Hash::check($request->input('pin'), $member->pin)) {
+                return redirect()->back()->withInput()->with('error', 'PIN transaksi salah. Transaksi gagal.');
+            }
         }
 
         $wallet = Wallet::where('member_id', $member->id)->first();
@@ -136,6 +232,18 @@ class TransactionController extends Controller
 
         if ($request->input('transactionType') === 'payment' && $request->input('nominal') > $wallet->balance) {
             return redirect()->back()->withInput()->with('error', 'Transaksi Gagal! Saldo member tidak mencukupi (Saldo: Rp ' . number_format($wallet->balance, 0, ',', '.') . ').');
+        }
+
+        $qrToken = null;
+        if ($request->filled('qrToken')) {
+            $qrToken = QrToken::where('token', $request->input('qrToken'))->first();
+
+            if ($qrToken->member_id != $member->id) {
+                return redirect()->back()->withInput()->with('error', 'Token QR tidak sesuai dengan member.');
+            }
+            if ($qrToken->used_at) {
+                return redirect()->back()->withInput()->with('error', 'QR Code ini sudah terpakai di transaksi lain.');
+            }
         }
 
         try {
@@ -162,6 +270,16 @@ class TransactionController extends Controller
             }
 
             $wallet->save();
+
+            if ($qrToken) {
+                $qrToken->update(['used_at' => now()]);
+                $cacheKey = 'qr_data_' . $qrToken->token;
+                $cacheData = [
+                    'amount' => $request->input('nominal'),
+                    'type' => $request->input('transactionType')
+                ];
+                Cache::put($cacheKey, $cacheData, \Carbon\Carbon::now()->addMinutes(2));
+            }
 
             return redirect()->route('transaction.create')->with('success', 'Transaksi berhasil disimpan.');
         } catch (\Exception $e) {

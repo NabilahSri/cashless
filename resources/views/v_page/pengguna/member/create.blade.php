@@ -18,11 +18,39 @@
                     </div>
                 </div>
 
-                {{-- Card Body --}}
-                <div class="border-t border-gray-100 p-5 sm:p-6 dark:border-gray-800">
+                {{-- Card Body (Modifikasi x-data untuk Limit) --}}
+                <div x-data="{
+                    pinStatus: '{{ old('status_pin', 'inactive') }}',
+                    limitStatus: '{{ old('limit_status', 'no_limit') }}',
+                    limitRupiah: '{{ old('limit_transaction', 0) > 0 ? number_format(old('limit_transaction'), 0, ',', '.') : '' }}',
+                    // Fungsi untuk format mata uang
+                    formatRupiah(value) {
+                        // 1. Bersihkan nilai dari karakter non-angka
+                        let number_string = value.replace(/[^,\d]/g, '').toString(),
+                            split = number_string.split(','),
+                            sisa = split[0].length % 3,
+                            rupiah = split[0].substr(0, sisa),
+                            ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+                
+                        // 2. Tambahkan titik jika ada
+                        if (ribuan) {
+                            separator = sisa ? '.' : '';
+                            rupiah += separator + ribuan.join('.');
+                        }
+                
+                        // 3. Tambahkan koma dan angka di belakang koma (jika ada)
+                        rupiah = split[1] != undefined ? rupiah + ',' + split[1] : rupiah;
+                
+                        return rupiah;
+                    },
+                    // Fungsi untuk mendapatkan nilai bersih (angka saja) untuk submission
+                    getCleanValue(formattedValue) {
+                        return formattedValue.replace(/[^0-9]/g, '');
+                    }
+                }" class="border-t border-gray-100 p-5 sm:p-6 dark:border-gray-800">
                     <div class="-mx-2.5 flex flex-wrap gap-y-5">
 
-                        {{-- Nama --}}
+                        {{-- Nama, Username, Email, No. Telp (Tidak Berubah) --}}
                         <div class="w-full px-2.5 xl:w-1/2">
                             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                                 Nama
@@ -31,8 +59,6 @@
                                 class="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
                                 required />
                         </div>
-
-                        {{-- Username --}}
                         <div class="w-full px-2.5 xl:w-1/2">
                             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                                 Username
@@ -42,8 +68,6 @@
                                 class="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
                                 required />
                         </div>
-
-                        {{-- Email --}}
                         <div class="w-full px-2.5 xl:w-1/2">
                             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                                 Email
@@ -52,8 +76,6 @@
                                 class="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
                                 required />
                         </div>
-
-                        {{-- No. Telp --}}
                         <div class="w-full px-2.5 xl:w-1/2">
                             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                                 No. Telp
@@ -63,18 +85,80 @@
                                 required />
                         </div>
 
-                        {{-- Card UID (Tambahan) --}}
+                        {{-- Status PIN --}}
+                        <div class="w-full px-2.5 xl:w-1/2">
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                                Status PIN
+                            </label>
+                            <select name="status_pin" x-model="pinStatus"
+                                class="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
+                                required>
+                                <option value="active">Aktif</option>
+                                <option value="inactive">Tidak Aktif</option>
+                            </select>
+                        </div>
+
+                        {{-- PIN (Muncul HANYA JIKA pinStatus adalah 'active') --}}
+                        <div x-show="pinStatus === 'active'" class="w-full px-2.5 xl:w-1/2">
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                                PIN (6 Digit)
+                            </label>
+                            <input type="password" placeholder="Masukkan PIN" name="pin" value="{{ old('pin') }}"
+                                class="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
+                                maxlength="6" :required="pinStatus === 'active'" />
+                        </div>
+
+                        {{-- Placeholder jika PIN tidak aktif --}}
+                        <div x-show="pinStatus !== 'active'" class="w-full px-2.5 xl:w-1/2"></div>
+
+                        {{-- Status Limit --}}
+                        <div class="w-full px-2.5 xl:w-1/2">
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                                Status Limit
+                            </label>
+                            <select name="status_limit" x-model="limitStatus"
+                                class="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
+                                required>
+                                <option value="daily">Harian</option>
+                                <option value="weekly">Mingguan</option>
+                                <option value="monthly">Bulanan</option>
+                                <option value="no_limit">Tidak Ada Limit</option>
+                            </select>
+                        </div>
+
+                        {{-- Limit Transaksi (Menggunakan format Rupiah) --}}
+                        <div x-show="limitStatus !== 'no_limit'" class="w-full px-2.5 xl:w-1/2">
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                                Limit Transaksi
+                            </label>
+
+                            {{-- Input yang ditampilkan ke pengguna (Format Rupiah) --}}
+                            <div class="relative">
+                                <span
+                                    class="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-500 dark:text-gray-400">Rp</span>
+                                <input type="text" placeholder="Contoh: 500.000" x-model="limitRupiah"
+                                    x-on:input="limitRupiah = formatRupiah($event.target.value)"
+                                    class="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-transparent py-2.5 pr-4 pl-10 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
+                                    :required="limitStatus !== 'no_limit'" />
+                            </div>
+
+                            {{-- Input tersembunyi untuk mengirim nilai bersih ke Laravel (Angka saja) --}}
+                            <input type="hidden" name="limit_transaction" :value="getCleanValue(limitRupiah)">
+                        </div>
+
+                        {{-- Placeholder jika Tidak Ada Limit --}}
+                        <div x-show="limitStatus === 'no_limit'" class="w-full px-2.5 xl:w-1/2"></div>
+
+                        {{-- Card UID dan Password (Tidak Berubah) --}}
                         <div class="w-full px-2.5 xl:w-1/2">
                             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                                 UID Kartu
                             </label>
-                            <input type="text" placeholder="Tempelkan kartu atau masukkan UID" name="card_uid"
+                            <input type="password" placeholder="Tempelkan kartu atau masukkan UID" name="card_uid"
                                 value="{{ old('card_uid') }}"
                                 class="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
                                 required />
                         </div>
-
-                        {{-- Password --}}
                         <div class="w-full px-2.5 xl:w-1/2">
                             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                                 Password

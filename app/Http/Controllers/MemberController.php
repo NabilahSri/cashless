@@ -62,13 +62,17 @@ class MemberController extends Controller
             'card_uid'  => 'required|string|max:100|unique:members,card_uid',
             'address'   => 'nullable|string',
             'password'  => 'required|string',
+            'pin'       => 'nullable|string',
+            'status_pin' => 'required|in:active,inactive',
+            'status_limit' => 'required|in:daily,weekly,monthly,no_limit',
+            'limit_transaction' => 'nullable',
         ]);
         try {
             DB::transaction(function () use ($validatedData) {
                 $userData = [
                     'name' => $validatedData['name'],
                     'username' => $validatedData['username'],
-                    'password' => $validatedData['password'],
+                    'password' => bcrypt($validatedData['password']),
                     'role' => 'member',
                 ];
                 $newUser = User::create($userData);
@@ -79,7 +83,10 @@ class MemberController extends Controller
                     'email' => $validatedData['email'],
                     'phone' => $validatedData['phone'],
                     'card_uid' => $validatedData['card_uid'],
-                    'pin' => bcrypt('12345678'),
+                    'status_pin' => $validatedData['status_pin'],
+                    'status_limit' => $validatedData['status_limit'],
+                    'limit_transaction' => $validatedData['limit_transaction'],
+                    'pin' => isset($validatedData['pin']) ? bcrypt($validatedData['pin']) : null,
                     'address' => $validatedData['address'],
                 ];
                 $newMember = Member::create($memberData);
@@ -130,6 +137,9 @@ class MemberController extends Controller
             'username'  => 'required|string|max:100|' . Rule::unique('users')->ignore($member->user_id),
             'password'  => 'nullable|string',
             'pin'       => 'nullable|string',
+            'status_pin' => 'required|in:active,inactive',
+            'status_limit' => 'required|in:daily,weekly,monthly,no_limit',
+            'limit_transaction' => 'nullable',
         ]);
         try {
             DB::transaction(function () use ($validatedData, $member, $request) {
@@ -137,8 +147,8 @@ class MemberController extends Controller
                     'name' => $validatedData['name'],
                     'username' => $validatedData['username'],
                 ];
-                if ($request->filled('password')) {
-                    $userData['password'] = bcrypt($request->input('password'));
+                if (!empty($validatedData['password'])) {
+                    $userData['password'] = bcrypt($validatedData['password']);
                 }
 
                 $member->user->update($userData);
@@ -149,9 +159,12 @@ class MemberController extends Controller
                     'phone'     => $validatedData['phone'],
                     'card_uid'  => $validatedData['card_uid'],
                     'address'   => $validatedData['address'],
+                    'status_pin' => $validatedData['status_pin'],
+                    'status_limit' => $validatedData['status_limit'],
+                    'limit_transaction' => $validatedData['limit_transaction'],
                 ];
-                if ($request->filled('pin')) {
-                    $memberData['pin'] = bcrypt($request->input('pin'));
+                if (!empty($validatedData['pin'])) {
+                    $memberData['pin'] = bcrypt($validatedData['pin']);
                 }
                 $member->update($memberData);
             });

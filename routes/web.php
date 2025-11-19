@@ -7,7 +7,9 @@ use App\Http\Controllers\LogActivityController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\MerchantController;
 use App\Http\Controllers\PartnerController;
+use App\Http\Controllers\PencairanDanaController;
 use App\Http\Controllers\PengelolaController;
+use App\Http\Controllers\QrCodeController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WalletController;
@@ -38,9 +40,13 @@ Route::middleware(['cekAuth'])->group(function () {
     Route::resource('/log-activity', LogActivityController::class);
 
     Route::resource('/transaction', TransactionController::class);
+    Route::get('/trasaction/member/qr', [QrCodeController::class, 'show'])
+        ->name('member.qr.show');
 
     Route::resource('/akun', AccountController::class);
     Route::post('/personal-information/{id}', [AccountController::class, 'personalInformation'])->name('personalInformation');
 
     Route::resource('/pengelola', PengelolaController::class);
+
+    Route::get('/pencairan-dana', [PencairanDanaController::class, 'index'])->name('pencairanDana.index');
 });

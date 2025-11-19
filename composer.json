@@ -16,6 +16,7 @@
         "livewire/livewire": "^3.6",
         "maatwebsite/excel": "3.*",
         "rappasoft/laravel-livewire-tables": "^3.7",
+        "simplesoftwareio/simple-qrcode": "^4.2",
         "spatie/laravel-activitylog": "^4.10"
     },
     "require-dev": {

@@ -1,5 +1,33 @@
 @extends('template')
 
+@push('styles')
+    <style>
+        @keyframes fade-in {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in {
+            animation: fade-in 0.5s ease-out;
+        }
+
+        /* Custom focus styles */
+        input:focus,
+        select:focus,
+        textarea:focus {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+        }
+    </style>
+@endpush
+
 @section('content')
     <div class="space-y-5 sm:space-y-6">
         <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
@@ -11,67 +39,75 @@
 
             <div class="py-5 space-y-4 border-t border-gray-100 p-5 sm:p-6 dark:border-gray-800">
 
-                <div x-data="{ activeTab: '{{ $activeSearchTab ?? 'member' }}' }" class="mb-4">
+                <div x-data="qrScanner('{{ $activeSearchTab ?? 'card' }}')" class="mb-4">
                     <div class="border-b border-gray-200 dark:border-gray-700">
                         <nav class="-mb-px flex gap-x-6" aria-label="Tabs">
                             <button
-                                @click="activeTab = 'member'; $nextTick(() => document.getElementById('memberId').focus())"
-                                :class="activeTab === 'member' ? 'border-blue-500 text-blue-600' :
+                                @click="activeTab = 'card'; resetForm(); $nextTick(() => { document.getElementById('cardUid').focus(); stopQRScanner(); })"
+                                :class="activeTab === 'card' ?
+                                    'border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-400' :
                                     'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'"
-                                class="whitespace-nowrap border-b-2 py-3 px-1 text-sm font-medium">
-                                <i class="fa-solid fa-hashtag mr-1"></i>
-                                Nomor Member
-                            </button>
-
-                            <button @click="activeTab = 'card'; $nextTick(() => document.getElementById('cardUid').focus())"
-                                :class="activeTab === 'card' ? 'border-blue-500 text-blue-600' :
-                                    'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'"
-                                class="whitespace-nowrap border-b-2 py-3 px-1 text-sm font-medium">
-                                <i class="fa-solid fa-id-card mr-1"></i>
+                                class="whitespace-nowrap border-b-2 py-3 px-1 text-sm font-medium transition-colors duration-200">
+                                <i class="fa-solid fa-id-card mr-2"></i>
                                 Tap Kartu
                             </button>
 
-                            {{-- <button @click="activeTab = 'qr'"
-                                :class="activeTab === 'qr' ? 'border-blue-500 text-blue-600' :
+                            <button @click="activeTab = 'qr'; resetForm(); $nextTick(() => startQRScanner())"
+                                :class="activeTab === 'qr' ?
+                                    'border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-400' :
                                     'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'"
-                                class="whitespace-nowrap border-b-2 py-3 px-1 text-sm font-medium">
-                                <i class="fa-solid fa-qrcode mr-1"></i>
+                                class="whitespace-nowrap border-b-2 py-3 px-1 text-sm font-medium transition-colors duration-200">
+                                <i class="fa-solid fa-qrcode mr-2"></i>
                                 Scan QR
-                            </button> --}}
+                            </button>
                         </nav>
                     </div>
 
                     <div class="py-4">
-                        <div x-show="activeTab === 'member'">
-                            <form action="{{ route('transaction.create') }}" method="GET">
-                                <label for="memberId" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Nomor Member
-                                </label>
-                                <div class="mt-1 flex gap-2">
-                                    <input type="text" id="memberId" name="memberId"
-                                        value="{{ old('memberId', $memberId ?? null) }}" placeholder="Masukkan No. Member"
-                                        class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
-                                    <button type="submit"
-                                        class="flex-shrink-0 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-400">
-                                        Cari
-                                    </button>
-                                </div>
-                                @error('memberId')
-                                    <span class="text-sm text-red-500">{{ $message }}</span>
-                                @enderror
-                            </form>
-                        </div>
+                        <div x-show="activeTab === 'card'" style="display: none;"
+                            x-transition:enter="transition ease-out duration-300"
+                            x-transition:enter-start="opacity-0 transform -translate-y-2"
+                            x-transition:enter-end="opacity-100 transform translate-y-0">
+                            <form id="cardForm" action="{{ route('transaction.create') }}" method="GET">
+                                <input type="hidden" name="searchType" value="card">
 
-                        <div x-show="activeTab === 'card'" style="display: none;">
-                            <form action="{{ route('transaction.create') }}" method="GET">
-                                <label for="cardUid" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    UID Kartu
-                                </label>
-                                <div class="mt-1">
-                                    <input type="text" id="cardUid" name="cardUid"
-                                        value="{{ old('cardUid', $cardUid ?? null) }}" placeholder="Tempelkan kartu..."
-                                        oninput="if(this.value.length === 11) { this.form.submit(); }"
-                                        class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                                <div
+                                    class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800">
+                                    <div class="text-center">
+                                        <div
+                                            class="w-16 h-16 mx-auto mb-4 bg-blue-100 dark:bg-blue-800 rounded-full flex items-center justify-center">
+                                            <i class="fa-solid fa-id-card text-2xl text-blue-600 dark:text-blue-400"></i>
+                                        </div>
+                                        <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-2">
+                                            Tempelkan Kartu
+                                        </h3>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                                            Tempelkan kartu member Anda di reader RFID
+                                        </p>
+
+                                        <div class="relative">
+                                            <div class="absolute inset-0 flex items-center" aria-hidden="true">
+                                                <div class="w-full border-t border-gray-300 dark:border-gray-600"></div>
+                                            </div>
+                                            <div class="relative flex justify-center">
+                                                <span
+                                                    class="bg-white dark:bg-gray-800 px-3 text-sm text-gray-500 dark:text-gray-400">
+                                                    Akan terbaca otomatis
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <input type="password" id="cardUid" name="cardUid" x-ref="cardInput"
+                                            placeholder="Kartu akan terbaca otomatis..."
+                                            oninput="if(this.value.length === 11) { this.form.submit(); }"
+                                            class="mt-4 w-full text-center text-lg font-mono bg-white dark:bg-gray-800 border-2 border-dashed border-blue-300 dark:border-blue-600 rounded-lg py-4 px-4 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800 transition-all duration-200"
+                                            autocomplete="off" autofocus>
+                                        <div
+                                            class="mt-2 flex items-center justify-center text-sm text-blue-600 dark:text-blue-400">
+                                            <i class="fa-solid fa-circle-info mr-1"></i>
+                                            <span>Tempelkan kartu dan tunggu</span>
+                                        </div>
+                                    </div>
                                 </div>
                                 @error('cardUid')
                                     <span class="text-sm text-red-500">{{ $message }}</span>
@@ -79,104 +115,265 @@
                             </form>
                         </div>
 
-                        {{-- <div x-show="activeTab === 'qr'" style="display: none;">
-                            <p class="text-sm text-gray-600 dark:text-gray-400">Pindai QR Code member menggunakan kamera.
-                            </p>
+                        <div x-show="activeTab === 'qr'" style="display: none;"
+                            x-transition:enter="transition ease-out duration-300"
+                            x-transition:enter-start="opacity-0 transform -translate-y-2"
+                            x-transition:enter-end="opacity-100 transform translate-y-0">
+                            <form id="qrForm" action="{{ route('transaction.create') }}" method="GET">
+                                <input type="hidden" name="searchType" value="qr">
+                                <input type="hidden" id="qrCode" name="qrCode" value="">
+                            </form>
 
-                            <div id="qr-reader" class="mt-2 w-full max-w-sm rounded-lg border dark:border-gray-600"></div>
+                            <div
+                                class="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl p-6 border border-purple-200 dark:border-purple-800">
+                                <div class="text-center">
+                                    <div
+                                        class="w-16 h-16 mx-auto mb-4 bg-purple-100 dark:bg-purple-800 rounded-full flex items-center justify-center">
+                                        <i class="fa-solid fa-qrcode text-2xl text-purple-600 dark:text-purple-400"></i>
+                                    </div>
+                                    <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-2">
+                                        Scan QR Code
+                                    </h3>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                                        Arahkan kamera ke QR Code member
+                                    </p>
 
-                            <button type="button" id="start-scan-btn"
-                                class="mt-3 rounded-lg bg-gray-700 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 dark:bg-gray-600 dark:hover:bg-gray-500">
-                                <i class="fa-solid fa-camera mr-1"></i>
-                                Mulai Scan
-                            </button>
-                        </div> --}}
+                                    <div id="qr-reader"
+                                        class="mt-2 mx-auto w-full max-w-xs rounded-lg border-2 border-dashed border-purple-300 dark:border-purple-600 bg-white dark:bg-gray-800 overflow-hidden">
+                                    </div>
+
+                                    <template x-if="!isScanning">
+                                        <button type="button" @click="startQRScanner()"
+                                            class="mt-4 rounded-lg bg-purple-600 px-6 py-3 text-sm font-medium text-white hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-400 transition-colors duration-200 flex items-center justify-center mx-auto">
+                                            <i class="fa-solid fa-camera mr-2"></i>
+                                            Mulai Scan QR
+                                        </button>
+                                    </template>
+
+                                    <template x-if="isScanning">
+                                        <button type="button" @click="stopQRScanner()"
+                                            class="mt-4 rounded-lg bg-red-600 px-6 py-3 text-sm font-medium text-white hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-400 transition-colors duration-200 flex items-center justify-center mx-auto">
+                                            <i class="fa-solid fa-square-stop mr-2"></i>
+                                            Hentikan Scan
+                                        </button>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
+
+                @if (session('error'))
+                    <div
+                        class="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20 animate-pulse">
+                        <div class="flex items-center">
+                            <i class="fa-solid fa-circle-exclamation text-red-500 mr-3 text-lg"></i>
+                            <div>
+                                <span class="text-red-700 dark:text-red-400 font-medium">{{ session('error') }}</span>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
                 @if ($member)
-                    <div class="rounded-lg border bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700">
-                        <h4 class="font-semibold dark:text-white">Data Member</h4>
-                        <dl class="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-                            <dt class="text-gray-500 dark:text-gray-400">Nama:</dt>
-                            <dd class="dark:text-white">{{ $member->name }}</dd>
-                            <dt class="text-gray-500 dark:text-gray-400">Email:</dt>
-                            <dd class="dark:text-white">{{ $member->email }}</dd>
-                            <dt class="text-gray-500 dark:text-gray-400 mt-2">Saldo Saat Ini:</dt>
-                            <dd class="dark:text-white font-bold text-lg mt-1">
-                                Rp {{ number_format($currentBalance, 0, ',', '.') }}
-                            </dd>
-                        </dl>
+                    <div id="member-data-card"
+                        class="rounded-xl border border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20 p-6 animate-fade-in">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <h4 class="font-semibold text-gray-800 dark:text-white flex items-center">
+                                    <i class="fa-solid fa-user-check text-green-600 mr-2"></i>
+                                    Data Member Ditemukan
+                                </h4>
+                                <dl class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
+                                    <div class="flex flex-col">
+                                        <dt class="text-gray-500 dark:text-gray-400">Nama:</dt>
+                                        <dd class="dark:text-white font-medium">{{ $member->name }}</dd>
+                                    </div>
+                                    <div class="flex flex-col">
+                                        <dt class="text-gray-500 dark:text-gray-400">No. Member:</dt>
+                                        <dd class="dark:text-white font-medium">{{ $member->member_no }}</dd>
+                                    </div>
+                                </dl>
+                                @if ($limitInfo && $limitInfo['limit_type'] != 'no_limit')
+                                    <div class="mt-4">
+                                        <div class="grid grid-cols-2 gap-4 text-sm">
+                                            <div>
+                                                <span class="text-gray-500 dark:text-gray-400">Limit:</span>
+                                                <div class="font-semibold text-gray-800 dark:text-white">
+                                                    Rp {{ number_format($limitInfo['limit_amount'], 0, ',', '.') }}
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <span class="text-gray-500 dark:text-gray-400">Terpakai:</span>
+                                                <div class="font-semibold text-gray-800 dark:text-white">
+                                                    Rp {{ number_format($limitInfo['used_amount'], 0, ',', '.') }}
+                                                </div>
+                                            </div>
+                                            <div class="col-span-2">
+                                                <span class="text-gray-500 dark:text-gray-400">Sisa Limit:</span>
+                                                <div
+                                                    class="font-bold text-lg
+                                            @if ($limitInfo['is_exceeded']) text-red-600 dark:text-red-400
+                                            @elseif($limitInfo['remaining_limit'] < $limitInfo['limit_amount'] * 0.2)
+                                                text-orange-600 dark:text-orange-400
+                                            @else
+                                                text-green-600 dark:text-green-400 @endif">
+                                                    Rp {{ number_format($limitInfo['remaining_limit'], 0, ',', '.') }}
+                                                </div>
+                                                @if ($limitInfo['is_exceeded'])
+                                                    <div class="text-red-500 text-xs mt-1 flex items-center">
+                                                        <i class="fa-solid fa-exclamation-triangle mr-1"></i>
+                                                        Limit telah tercapai!
+                                                    </div>
+                                                @elseif($limitInfo['remaining_limit'] < $limitInfo['limit_amount'] * 0.2)
+                                                    <div class="text-orange-500 text-xs mt-1 flex items-center">
+                                                        <i class="fa-solid fa-info-circle mr-1"></i>
+                                                        Limit hampir habis
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        </div>
+
+                                        <!-- Progress Bar -->
+                                        <div class="mt-2">
+                                            <div class="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
+                                                @php
+                                                    $percentage =
+                                                        $limitInfo['limit_amount'] > 0
+                                                            ? min(
+                                                                100,
+                                                                ($limitInfo['used_amount'] /
+                                                                    $limitInfo['limit_amount']) *
+                                                                    100,
+                                                            )
+                                                            : 0;
+                                                    $progressColor =
+                                                        $percentage >= 100
+                                                            ? 'bg-red-500'
+                                                            : ($percentage >= 80
+                                                                ? 'bg-orange-500'
+                                                                : 'bg-blue-500');
+                                                @endphp
+                                                <div class="h-2 rounded-full {{ $progressColor }} transition-all duration-300"
+                                                    style="width: {{ $percentage }}%"></div>
+                                            </div>
+                                            <div class="text-xs text-gray-500 dark:text-gray-400 mt-1 text-right">
+                                                {{ number_format($percentage, 1) }}%
+                                            </div>
+                                        </div>
+                                    </div>
+                                @elseif($limitInfo && $limitInfo['limit_type'] == 'unlimited')
+                                    <div
+                                        class="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                                        <div class="flex items-center text-blue-600 dark:text-blue-400">
+                                            <i class="fa-solid fa-infinity mr-2"></i>
+                                            <span class="font-medium">Tidak ada limit transaksi</span>
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
+                            <div
+                                class="w-12 h-12 bg-green-100 dark:bg-green-800 rounded-full flex items-center justify-center">
+                                <i class="fa-solid fa-check text-green-600 dark:text-green-400 text-xl"></i>
+                            </div>
+                        </div>
                     </div>
 
-                    <form action="{{ route('transaction.store') }}" method="POST" class="space-y-4 pt-4">
-                        @csrf
-                        <input type="hidden" name="memberId" value="{{ $member->member_no }}">
-                        <div>
-                            <label for="nominal_display" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Nominal Transaksi
-                            </label>
-                            <input type="text" id="nominal_display" placeholder="Contoh: Rp 50.000"
-                                class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
-                            <input type="hidden" id="nominal" name="nominal" value="{{ old('nominal') }}" />
-                            @error('nominal')
-                                <span class="text-sm text-red-500">{{ $message }}</span>
-                            @enderror
-                        </div>
+                    @if (
+                        ($cekDefault && $cekDefault->status == 1) ||
+                            ($cekDefault && $cekDefault->status != 1 && !$limitInfo['is_exceeded']))
+                        <form id="transaction-form" action="{{ route('transaction.store') }}" method="POST"
+                            class="space-y-6 pt-4">
+                            @csrf
+                            <input type="hidden" name="memberId" value="{{ $member->member_no }}">
+                            @if ($qrCodeToken)
+                                <input type="hidden" name="qrToken" value="{{ $qrCodeToken }}">
+                            @endif
 
-                        <div>
-                            <label for="transactionType" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Tipe Transaksi
-                            </label>
-                            <select id="transactionType" name="transactionType"
-                                class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
-                                <option value="">Pilih tipe transaksi...</option>
-                                @if ($cekDefault && $cekDefault->status == 1)
-                                    <option value="topup" {{ old('transactionType') == 'topup' ? 'selected' : '' }}>
-                                        Top Up / Deposit
-                                    </option>
-                                @endif
-                                <option value="payment" {{ old('transactionType') == 'payment' ? 'selected' : '' }}>
-                                    Pembayaran / Pembelian
-                                </option>
-                            </select>
-                            @error('transactionType')
-                                <span class="text-sm text-red-500">{{ $message }}</span>
-                            @enderror
-                        </div>
+                            <div
+                                class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+                                <label for="nominal_display"
+                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                                    <i class="fa-solid fa-money-bill-wave mr-2"></i>
+                                    Nominal Transaksi
+                                </label>
+                                <input type="text" id="nominal_display" placeholder="Contoh: Rp 50.000"
+                                    class="w-full text-lg font-semibold rounded-lg border-2 border-gray-300 dark:border-gray-600 py-4 px-4 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800 transition-all duration-200 dark:bg-gray-700 dark:text-white"
+                                    autofocus>
+                                <input type="hidden" id="nominal" name="nominal" value="{{ old('nominal') }}" />
+                                @error('nominal')
+                                    <span class="text-sm text-red-500 mt-2 block">{{ $message }}</span>
+                                @enderror
+                            </div>
 
-                        <div>
-                            <label for="deskripsi" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Deskripsi (Opsional)
-                            </label>
-                            <textarea id="deskripsi" name="deskripsi" rows="3" placeholder="Contoh: Pembelian produk..."
-                                class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">{{ old('deskripsi') }}</textarea>
-                            @error('deskripsi')
-                                <span class="text-sm text-red-500">{{ $message }}</span>
-                            @enderror
-                        </div>
+                            <div
+                                class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+                                <label for="transactionType"
+                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                                    <i class="fa-solid fa-exchange-alt mr-2"></i>
+                                    Tipe Transaksi
+                                </label>
+                                <select id="transactionType" name="transactionType"
+                                    class="w-full rounded-lg border-2 border-gray-300 dark:border-gray-600 py-3 px-4 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800 transition-all duration-200 dark:bg-gray-700 dark:text-white">
+                                    <option value="">Pilih tipe transaksi...</option>
+                                    @if ($cekDefault && $cekDefault->status == 1)
+                                        <option value="topup" selected>
+                                            Top Up
+                                        </option>
+                                    @else
+                                        <option value="payment" selected>
+                                            Pembayaran
+                                        </option>
+                                    @endif
+                                </select>
+                                @error('transactionType')
+                                    <span class="text-sm text-red-500 mt-2 block">{{ $message }}</span>
+                                @enderror
+                            </div>
 
-                        <div>
-                            <label for="pin" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                PIN Member
-                            </label>
-                            <input type="password" id="pin" name="pin" placeholder="Masukkan pin member"
-                                class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
-                            @error('pin')
-                                <span class="text-sm text-red-500">{{ $message }}</span>
-                            @enderror
-                        </div>
+                            <div
+                                class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+                                <label for="deskripsi"
+                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                                    <i class="fa-solid fa-file-lines mr-2"></i>
+                                    Deskripsi (Opsional)
+                                </label>
+                                <textarea id="deskripsi" name="deskripsi" rows="3"
+                                    placeholder="Contoh: Pembelian produk, Top up saldo, dll..."
+                                    class="w-full rounded-lg border-2 border-gray-300 dark:border-gray-600 py-3 px-4 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800 transition-all duration-200 dark:bg-gray-700 dark:text-white">{{ old('deskripsi') }}</textarea>
+                                @error('deskripsi')
+                                    <span class="text-sm text-red-500 mt-2 block">{{ $message }}</span>
+                                @enderror
+                            </div>
 
-                        <div class="flex justify-end gap-3 ">
-                            <button type="reset"
-                                class="rounded-lg bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500">
-                                Reset
-                            </button>
-                            <button type="submit"
-                                class="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-400">
-                                Simpan Transaksi
-                            </button>
-                        </div>
-                    </form>
+                            @if ($member->status_pin == 'active')
+                                <div
+                                    class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+                                    <label for="pin"
+                                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                                        <i class="fa-solid fa-lock mr-2"></i>
+                                        PIN Member
+                                    </label>
+                                    <input type="password" id="pin" name="pin"
+                                        placeholder="Masukkan  PIN member"
+                                        class="w-full rounded-lg border-2 border-gray-300 dark:border-gray-600 py-3 px-4 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800 transition-all duration-200 dark:bg-gray-700 dark:text-white"
+                                        required>
+                                    @error('pin')
+                                        <span class="text-sm text-red-500 mt-2 block">{{ $message }}</span>
+                                    @enderror
+                                </div>
+                            @endif
+
+                            <div class="flex justify-end gap-3 pt-4">
+                                <button type="submit"
+                                    class="rounded-xl bg-green-600 px-8 py-3 text-sm font-medium text-white hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-400 transition-colors duration-200 flex items-center shadow-lg shadow-green-200 dark:shadow-green-900/30">
+                                    <i class="fa-solid fa-floppy-disk mr-2"></i>
+                                    Simpan Transaksi
+                                </button>
+                            </div>
+                        </form>
+                    @endif
+
                 @endif
 
             </div>
@@ -185,7 +382,7 @@
 @endsection
 
 @push('scripts')
-    <script src="https://unpkg.com/html5-qrcode/min_s.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -210,66 +407,168 @@
                     }
                 }
                 nominalDisplay.addEventListener('input', handleInput);
+
+                // Format existing value if any
                 if (nominalHidden.value) {
                     nominalDisplay.value = formatter.format(parseInt(nominalHidden.value, 10));
                 }
             }
+
+            // Auto-focus on card input when tab is active
+            @if (!$member)
+                setTimeout(() => {
+                    const cardInput = document.getElementById('cardUid');
+                    if (cardInput) {
+                        cardInput.focus();
+                    }
+                }, 500);
+            @endif
+
+            // Auto-focus nominal field if member data is present
+            @if ($member)
+                setTimeout(() => {
+                    const nominalDisplay = document.getElementById('nominal_display');
+                    if (nominalDisplay) {
+                        nominalDisplay.focus();
+                        nominalDisplay.select();
+                    }
+                }, 300);
+            @endif
         });
-    </script>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const startButton = document.getElementById('start-scan-btn');
-            const qrReaderDiv = document.getElementById('qr-reader');
+        // ==========================================================
+        // PERBAIKAN: Fungsi resetForm() kini menghilangkan data member
+        // dan form transaksi saat perpindahan tab.
+        // ==========================================================
+        function qrScanner(initialTab) {
+            return {
+                html5QrCode: null,
+                isScanning: false,
+                activeTab: initialTab,
 
-            if (!startButton || !qrReaderDiv) return;
+                // Fungsi untuk mereset form dan menghilangkan tampilan data member
+                resetForm() {
+                    // --- START PERBAIKAN PENTING ---
 
-            let html5QrCode;
+                    // 1. Manipulasi URL: Hapus parameter pencarian untuk membuat $member menjadi null
+                    const url = new URL(window.location);
+                    url.searchParams.delete('searchType');
+                    url.searchParams.delete('cardUid');
+                    url.searchParams.delete('qrCode');
 
-            function onScanSuccess(decodedText, decodedResult) {
-                console.log(`Scan berhasil: ${decodedText}`);
+                    // Ganti URL di address bar tanpa reload halaman
+                    history.replaceState(null, '', url);
 
-                if (html5QrCode && html5QrCode.isScanning) {
-                    html5QrCode.stop().then(() => {
-                        console.log("Scanner dihentikan.");
-                    }).catch(err => {
-                        console.error("Gagal menghentikan scanner.", err);
-                    });
-                }
+                    // 2. Hilangkan tampilan Data Member (hijau) dan Form Transaksi secara instan
+                    const memberCard = document.getElementById('member-data-card');
+                    const transactionForm = document.getElementById('transaction-form');
 
-                qrReaderDiv.innerHTML =
-                    `<p class="p-4 text-green-600">Scan Berhasil: ${decodedText}. Mencari data...</p>`;
+                    if (memberCard) {
+                        memberCard.style.display = 'none';
+                    }
+                    if (transactionForm) {
+                        transactionForm.style.display = 'none';
+                    }
 
-                const searchUrl = `{{ route('transaction.create') }}?qrCode=${decodedText}`;
-                window.location.href = searchUrl;
-            }
+                    // --- END PERBAIKAN PENTING ---
 
-            function onScanFailure(error) {}
+                    // Clear form fields
+                    const cardForm = document.getElementById('cardForm');
+                    if (cardForm) {
+                        cardForm.reset();
+                    }
 
-            startButton.addEventListener('click', () => {
-                html5QrCode = new Html5Qrcode("qr-reader");
+                    const qrForm = document.getElementById('qrForm');
+                    if (qrForm) {
+                        qrForm.reset();
+                        document.getElementById('qrCode').value = '';
+                    }
 
-                startButton.textContent = "Mengaktifkan kamera...";
-                startButton.disabled = true;
+                    // Stop scanner if it's running
+                    if (this.html5QrCode && this.isScanning) {
+                        this.stopQRScanner();
+                    }
+                },
 
-                html5QrCode.start({
-                        facingMode: "environment"
-                    }, {
-                        fps: 10,
-                        qrbox: {
-                            width: 250,
-                            height: 250
+                // QR Scanner start function
+                startQRScanner() {
+                    const qrReaderDiv = document.getElementById('qr-reader');
+                    if (!qrReaderDiv) return;
+
+                    // Clear previous scanner
+                    if (this.html5QrCode) {
+                        this.html5QrCode.clear();
+                    }
+
+                    qrReaderDiv.innerHTML = '';
+                    this.html5QrCode = new Html5Qrcode("qr-reader");
+                    this.isScanning = true;
+
+                    this.html5QrCode.start({
+                            facingMode: "environment"
+                        }, {
+                            fps: 10,
+                            qrbox: {
+                                width: 250,
+                                height: 250
+                            }
+                        },
+                        (decodedText) => {
+                            console.log('Scan berhasil, mencari data member...');
+                            this.onScanSuccess(decodedText);
+                        },
+                        (error) => {
+                            // Keep scanner running on failure
                         }
-                    },
-                    onScanSuccess,
-                    onScanFailure
-                ).catch(err => {
-                    qrReaderDiv.innerHTML =
-                        `<p class="p-4 text-red-600">Gagal memulai kamera: ${err}</p>`;
-                    startButton.textContent = "Mulai Scan";
-                    startButton.disabled = false;
-                });
-            });
-        });
+                    ).catch(err => {
+                        qrReaderDiv.innerHTML = `
+                            <div class="p-4 text-red-600 text-center">
+                                <i class="fa-solid fa-triangle-exclamation text-2xl mb-2"></i>
+                                <p>Gagal memulai kamera</p>
+                                <p class="text-sm">${err}</p>
+                            </div>`;
+                        this.isScanning = false;
+                    });
+                },
+
+                // QR Scanner stop function
+                stopQRScanner() {
+                    if (this.html5QrCode && this.isScanning) {
+                        this.html5QrCode.stop().then(() => {
+                            this.isScanning = false;
+                            console.log("QR Scanner stopped");
+                            const qrReaderDiv = document.getElementById('qr-reader');
+                            if (qrReaderDiv) qrReaderDiv.innerHTML = ''; // Clear the video element
+                        }).catch(err => {
+                            console.error("Failed to stop QR scanner", err);
+                        });
+                    }
+                },
+
+                // Action on successful QR scan
+                onScanSuccess(decodedText) {
+                    if (this.html5QrCode && this.isScanning) {
+                        this.html5QrCode.stop().then(() => {
+                            this.isScanning = false;
+
+                            const qrReaderDiv = document.getElementById('qr-reader');
+                            qrReaderDiv.innerHTML = `
+                                <div class="p-4 text-green-600 text-center">
+                                    <i class="fa-solid fa-check-circle text-2xl mb-2"></i>
+                                    <p>Scan Berhasil!</p>
+                                    <p class="text-sm">Mencari data member...</p>
+                                </div>`;
+
+                            // Submit the QR form
+                            document.getElementById('qrCode').value = decodedText;
+                            document.getElementById('qrForm').submit();
+
+                        }).catch(err => {
+                            console.error("Gagal menghentikan scanner", err);
+                        });
+                    }
+                }
+            }
+        }
     </script>
 @endpush

@@ -46,7 +46,8 @@ class PartnerController extends Controller
             'address' => 'required',
             'status' => 'nullable',
             'user_id' => 'nullable|array',
-            'user_id.*' => 'exists:users,id'
+            'user_id.*' => 'exists:users,id',
+            'komisi' => 'required|numeric|min:0|max:100'
         ]);
         DB::beginTransaction();
         if ($validateData['status'] == 1) {

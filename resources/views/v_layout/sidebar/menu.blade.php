@@ -1,6 +1,8 @@
 @php
     use App\Models\PartnerUser;
-    $partner = PartnerUser::where('user_id', auth()->user()->id)->first();
+    $partner = PartnerUser::with(['partner'])
+        ->where('user_id', auth()->user()->id)
+        ->first();
 @endphp
 <nav>
     <!-- Menu Group -->
@@ -161,6 +163,23 @@
                 </a>
             </li>
             <!-- Menu Item Dashboard -->
+
+            @if (auth()->user()->role == 'pengelola' && $partner->partner->status == true)
+                <li>
+                    <a href="{{ route('pencairanDana.index') }}"
+                        @click="selected = (selected === 'Pencairan Dana' ? '':'Pencairan Dana')"
+                        class="menu-item group"
+                        :class="(selected === 'Pencairan Dana') && (page === 'pencairanDana') ? 'menu-item-active' :
+                        'menu-item-inactive'">
+                        <i class="fa-solid fa-money-bill-wave text-xl"></i>
+
+                        <span class="menu-item-text" :class="sidebarToggle ? 'xl:hidden' : ''">
+                            Pencairan Dana
+                        </span>
+                    </a>
+                </li>
+                <!-- Menu Item Dashboard -->
+            @endif
 
             @if (auth()->user()->role == 'admin')
                 <!-- Menu Item aktivitas log -->

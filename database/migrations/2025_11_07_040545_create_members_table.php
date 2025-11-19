@@ -20,8 +20,11 @@ return new class extends Migration
             $table->string('phone');
             $table->text('address');
             $table->string('card_uid')->unique();
-            $table->string('pin');
-            $table->enum('status', ['active', 'inactive'])->default('active');
+            $table->enum('status_pin', ['active', 'inactive'])->default('active');
+            $table->string('pin')->nullable();
+            $table->enum('status_limit', ['daily', 'weekly', 'monthly', 'no_limit'])->default('daily');
+            $table->integer('limit_transaction')->nullable();
+            $table->enum('status_member', ['active', 'inactive'])->default('active');
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');

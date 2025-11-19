@@ -27,7 +27,15 @@ class TransactionTable extends DataTableComponent
         $this->setSortingPillsDisabled();
         $this->setDefaultSort('created_at', 'desc');
         $this->setPrimaryKey('id');
-        $this->setAdditionalSelects(['transactions.id', 'amount', 'type']);
+        $this->setAdditionalSelects([
+            'transactions.id',
+            'amount',
+            'type',
+            'transactions.created_at',
+            'trx_id',
+            'wallet_id',
+            'merchant_id',
+        ]);
         $this->setFilterLayout('slide-down');
         $this->setBulkActions([
             'exportSelected' => 'Download Data (Excel)',
@@ -39,14 +47,14 @@ class TransactionTable extends DataTableComponent
         if (Auth::user()->role == 'pengelola') {
             $partner_id = PartnerUser::where('user_id', Auth::user()->id)->pluck('partner_id');
             $merchant_id = Merchant::where('partner_id', $partner_id)->pluck('id');
-            return Transaction::whereIn('merchant_id', $merchant_id)->with(['user', 'wallet.member']);
+            return Transaction::whereIn('merchant_id', $merchant_id)->with(['user', 'wallet.member', 'merchant.partner']);
         }
         if (Auth::user()->role == 'member') {
             $member_id = Member::where('user_id', Auth::user()->id)->pluck('id');
             $wallet_id = Wallet::where('member_id', $member_id)->pluck('id');
-            return Transaction::whereIn('wallet_id', $wallet_id)->with(['user', 'wallet.member']);
+            return Transaction::whereIn('wallet_id', $wallet_id)->with(['user', 'wallet.member', 'merchant.partner']);
         }
-        return Transaction::query()->with(['user', 'wallet.member']);
+        return Transaction::query()->with(['user', 'wallet.member', 'merchant.partner']);
     }
 
     public function filters(): array
@@ -65,21 +73,20 @@ class TransactionTable extends DataTableComponent
 
         $filters[] =  DateRangeFilter::make('Tanggal Transaksi')
             ->config([
-                'allowInput' => true,  // Allow manual input of dates
-                'altFormat' => 'F j, Y', // Date format that will be displayed once selected
-                'ariaDateFormat' => 'F j, Y', // An aria-friendly date format
-                'dateFormat' => 'Y-m-d', // Date format that will be received by the filter
-                'earliestDate' => '2000-01-01', // The earliest acceptable date
-                'latestDate' => today()->toDateString(), // PERBAIKAN: Menggunakan tanggal hari ini
-                'placeholder' => 'Masukkan Rentang Tanggal', // PERBAIKAN: Diubah ke Bahasa Indonesia
+                'allowInput' => true,
+                'altFormat' => 'F j, Y',
+                'ariaDateFormat' => 'F j, Y',
+                'dateFormat' => 'Y-m-d',
+                'earliestDate' => '2000-01-01',
+                'latestDate' => today()->toDateString(),
+                'placeholder' => 'Masukkan Rentang Tanggal',
                 'locale' => 'id',
             ])
-            ->setFilterPillValues([0 => 'minDate', 1 => 'maxDate']) // The values that will be displayed for the Min/Max Date Values
-            ->filter(function (Builder $builder, array $dateRange) { // Expects an array.
+            ->setFilterPillValues([0 => 'minDate', 1 => 'maxDate'])
+            ->filter(function (Builder $builder, array $dateRange) {
                 $builder
-                    // PERBAIKAN: Menggunakan kolom 'created_at' dari tabel transaksi
-                    ->whereDate('transactions.created_at', '>=', $dateRange['minDate']) // minDate is the start date selected
-                    ->whereDate('transactions.created_at', '<=', $dateRange['maxDate']); // maxDate is the end date selected
+                    ->whereDate('transactions.created_at', '>=', $dateRange['minDate'])
+                    ->whereDate('transactions.created_at', '<=', $dateRange['maxDate']);
             });
 
         if (Auth::user()->role === 'admin') {
@@ -121,6 +128,22 @@ class TransactionTable extends DataTableComponent
             Column::make("Nominal", "amount")
                 ->label(fn($row) => 'Rp ' . number_format($row->amount, 0, ',', '.'))
                 ->sortable(),
+            Column::make("Komisi Partner")
+                ->label(function ($row) {
+                    if ($row->type === 'payment' && $row->merchant && $row->merchant->partner) {
+                        $komisi = $row->merchant->partner->komisi ?? 0;
+                        return $komisi . ' %';
+                    }
+                    return '0 %';
+                }),
+            Column::make("Komisi (Rp)")
+                ->label(function ($row) {
+                    if ($row->type === 'payment' && $row->merchant && $row->merchant->partner && is_numeric($row->merchant->partner->komisi)) {
+                        $commission_amount = ($row->amount * $row->merchant->partner->komisi) / 100;
+                        return 'Rp ' . number_format($commission_amount, 0, ',', '.');
+                    }
+                    return 'Rp 0';
+                }),
         ];
     }
 

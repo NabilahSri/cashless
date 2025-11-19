@@ -17,6 +17,7 @@ return new class extends Migration
             $table->text('address');
             $table->string('email')->unique();
             $table->string('phone');
+            $table->double('komisi')->default(0);
             $table->boolean('status')->default(false);
             $table->timestamps();
         });

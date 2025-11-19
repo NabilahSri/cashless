@@ -25,7 +25,7 @@ class MemberTable extends DataTableComponent
             'activateSelected' => 'Aktifkan Pilihan',
             'deactivateSelected' => 'Non-Aktifkan Pilihan',
         ]);
-        $this->setAdditionalSelects(['status', 'members.id']);
+        $this->setAdditionalSelects(['status_member', 'members.id']);
     }
 
     public function builder(): Builder
@@ -54,10 +54,10 @@ class MemberTable extends DataTableComponent
 
             Column::make("No. Telp", "phone"),
 
-            Column::make("Status", "status")
+            Column::make("Status", "status_member")
                 ->sortable()
                 ->label(function ($row) {
-                    return $row->status === 'active'
+                    return $row->status_member === 'active'
                         ? '<span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900 dark:text-green-200">Aktif</span>'
                         : '<span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800 dark:bg-red-900 dark:text-red-200">Tidak Aktif</span>';
                 })
@@ -89,9 +89,9 @@ class MemberTable extends DataTableComponent
                 ])
                 ->filter(function (Builder $builder, string $value) {
                     if ($value === 'active') {
-                        $builder->where('status', 'active');
+                        $builder->where('status_member', 'active');
                     } elseif ($value === 'inactive') {
-                        $builder->where('status', 'inactive');
+                        $builder->where('status_member', 'inactive');
                     }
                 }),
         ];
@@ -134,7 +134,7 @@ class MemberTable extends DataTableComponent
             return;
         }
 
-        Member::whereIn('id', $this->getSelected())->update(['status' => 'active']);
+        Member::whereIn('id', $this->getSelected())->update(['status_member' => 'active']);
         $this->dispatch('success', message: 'Status member berhasil diubah menjadi Aktif.');
         $this->clearSelected();
     }
@@ -146,7 +146,7 @@ class MemberTable extends DataTableComponent
             return;
         }
 
-        Member::whereIn('id', $this->getSelected())->update(['status' => 'inactive']);
+        Member::whereIn('id', $this->getSelected())->update(['status_member' => 'inactive']);
         $this->clearSelected();
         $this->dispatch('success', message: 'Status member berhasil diubah menjadi Non-Aktif.');
     }

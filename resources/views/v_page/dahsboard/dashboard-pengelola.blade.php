@@ -4,22 +4,24 @@
         <div class="col-span-12">
             <!-- Metric Group Four -->
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6 xl:grid-cols-3">
-                <!-- Metric Item Start -->
-                <div
-                    class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
-                    <h4 class="text-title-sm font-bold text-gray-800 dark:text-white/90">
-                        {{ $total_pengelola }}
-                    </h4>
+                @if ($diri->is_admin == true)
+                    <!-- Metric Item Start -->
+                    <div
+                        class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
+                        <h4 class="text-title-sm font-bold text-gray-800 dark:text-white/90">
+                            {{ $total_pengelola }}
+                        </h4>
 
-                    <div class="mt-4 flex items-end justify-between sm:mt-5">
-                        <div>
-                            <p class="text-theme-sm text-gray-700 dark:text-gray-400">
-                                Total Pengelola
-                            </p>
+                        <div class="mt-4 flex items-end justify-between sm:mt-5">
+                            <div>
+                                <p class="text-theme-sm text-gray-700 dark:text-gray-400">
+                                    Total Pengelola
+                                </p>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <!-- Metric Item End -->
+                    <!-- Metric Item End -->
+                @endif
 
                 <!-- Metric Item Start -->
                 <div

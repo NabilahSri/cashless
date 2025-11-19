@@ -87,9 +87,12 @@ class AccountController extends Controller
             'email' => $request->email,
             'phone' => $request->phone,
             'address' => $request->address,
+            'limit_transaction' => str_replace('.', '', $request->limit_transaction),
+            'status_limit' => $request->status_limit,
+            'status_pin' => $request->status_pin
         ];
 
-        if ($request->filled('pin')) {
+        if (!empty($request->input('pin'))) {
             $memberData['pin'] = bcrypt($request->input('pin'));
         }
 
