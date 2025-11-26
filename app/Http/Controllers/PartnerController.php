@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Partner;
 use App\Models\PartnerUser;
+use App\Models\PartnerWallet;
 use App\Models\User;
 use Egulias\EmailValidator\Parser\PartParser;
 use Illuminate\Http\Request;
@@ -68,6 +69,10 @@ class PartnerController extends Controller
                     'is_admin' => $isAdmin
                 ]);
             }
+            PartnerWallet::create([
+                'partner_id' => $newPartnerId,
+                'balance' => 0
+            ]);
             DB::commit();
             return redirect()->route('partner.index')->with('success', 'Data partner baru berhasil ditambahkan.');
         } catch (\Exception $e) {

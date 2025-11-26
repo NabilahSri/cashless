@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Member;
+use App\Models\Wallet;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -14,7 +15,18 @@ class AccountController extends Controller
     public function index()
     {
         $member = Member::where('user_id', auth()->user()->id)->first();
-        return view('v_page.account.index', ['page' => 'pengaturan profil', 'pageName' => 'Pengaturan Profil', 'selected' => 'Pengaturan Profil', 'member' => $member]);
+        $walletBalance = 0;
+        if ($member) {
+            $wallet = Wallet::where('member_id', $member->id)->first();
+            $walletBalance = $wallet ? (int)$wallet->balance : 0;
+        }
+        return view('v_page.account.index', [
+            'page' => 'pengaturan profil',
+            'pageName' => 'Pengaturan Profil',
+            'selected' => 'Pengaturan Profil',
+            'member' => $member,
+            'walletBalance' => $walletBalance,
+        ]);
     }
 
     /**

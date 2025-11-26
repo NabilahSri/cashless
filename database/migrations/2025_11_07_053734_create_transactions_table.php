@@ -19,6 +19,9 @@ return new class extends Migration
             $table->char('merchant_id', 36);
             $table->string('type');
             $table->integer('amount');
+            $table->double('komisi')->default(0);
+            $table->integer('komisi_amount')->default(0);
+            $table->integer('amount_after_komisi');
             $table->text('description')->nullable();
             $table->timestamps();
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');

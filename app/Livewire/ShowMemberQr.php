@@ -3,7 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Member;
-use App\Models\QrToken;
+use App\Models\QRToken;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Livewire\Component;
@@ -16,10 +16,10 @@ class ShowMemberQr extends Component
     public $transactionSuccessful = false;
     public $successAmount = 0;
     public $successType = '';
+    public $inputAmount = '';
 
     public function mount()
     {
-        $this->generate();
     }
 
     public function generate()
@@ -32,14 +32,19 @@ class ShowMemberQr extends Component
         $memberId = Member::where('user_id', $user->id)->first()->id;
 
 
-        QrToken::where('member_id', $memberId)
+        QRToken::where('member_id', $memberId)
             ->whereNull('used_at')
             ->update(['expires_at' => now()]);
 
         $newToken = Str::random(60);
         $expiryTime = now()->addMinutes(5);
 
-        $tokenModel = QrToken::create([
+        $amount = (int)preg_replace('/\D/', '', (string)$this->inputAmount);
+        if ($amount < 1) {
+            return;
+        }
+
+        $tokenModel = QRToken::create([
             'member_id' => $memberId,
             'token' => $newToken,
             'expires_at' => $expiryTime,
@@ -48,7 +53,8 @@ class ShowMemberQr extends Component
         $this->token = $tokenModel->token;
         $this->qrString = $tokenModel->token;
         $this->expiresAt = $expiryTime->toIso8601String();
-        $this->dispatch('qrGenerated', expiresAt: $this->expiresAt);
+        Cache::put('qr_request_' . $this->token, ['amount' => $amount], $expiryTime);
+        $this->dispatch('qr-generated', expiresAt: $this->expiresAt);
     }
 
     public function checkStatus()
@@ -57,10 +63,9 @@ class ShowMemberQr extends Component
             return;
         }
 
-        $currentToken = QrToken::where('token', $this->token)->first();
+        $currentToken = QRToken::where('token', $this->token)->first();
 
         if (!$currentToken) {
-            $this->generate();
             return;
         }
 
@@ -76,7 +81,7 @@ class ShowMemberQr extends Component
             }
             $this->dispatch('transactionSuccess');
         } elseif ($currentToken->expires_at < now()) {
-            $this->generate();
+            return;
         }
     }
 

@@ -21,7 +21,7 @@ class WalletTable extends DataTableComponent
 
     public function builder(): Builder
     {
-        return Wallet::query()->where('member.status', 'active');
+        return Wallet::query()->where('member.status_member', 'active');
     }
 
     public function columns(): array

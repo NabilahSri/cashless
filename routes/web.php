@@ -39,6 +39,8 @@ Route::middleware(['cekAuth'])->group(function () {
 
     Route::resource('/log-activity', LogActivityController::class);
 
+    // Cek saldo harus didefinisikan SEBELUM resource transaction agar tidak tertangkap oleh /transaction/{id}
+    Route::get('/transaction/check-balance', [TransactionController::class, 'checkBalance'])->name('transaction.checkBalance');
     Route::resource('/transaction', TransactionController::class);
     Route::get('/trasaction/member/qr', [QrCodeController::class, 'show'])
         ->name('member.qr.show');
@@ -49,4 +51,5 @@ Route::middleware(['cekAuth'])->group(function () {
     Route::resource('/pengelola', PengelolaController::class);
 
     Route::get('/pencairan-dana', [PencairanDanaController::class, 'index'])->name('pencairanDana.index');
+    Route::post('/pencairan-dana/store', [PencairanDanaController::class, 'store'])->name('pencairanDana.store');
 });

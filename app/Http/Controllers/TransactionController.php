@@ -7,6 +7,7 @@ use App\Models\Member;
 use App\Models\Merchant;
 use App\Models\Partner;
 use App\Models\PartnerUser;
+use App\Models\PartnerWallet;
 use App\Models\QRToken;
 use App\Models\Transaction;
 use App\Models\Wallet;
@@ -46,7 +47,17 @@ class TransactionController extends Controller
             'qrCode' => null,
             'cekDefault' => '',
             'qrCodeToken' => null,
+            'recommendations' => [],
+            'walletBalance' => 0,
+            'mode' => $request->get('mode'),
+            'pinValid' => false,
         ];
+
+        if ($data['mode'] === 'cek_saldo') {
+            $data['page'] = 'cek_saldo';
+            $data['pageName'] = 'Cek Saldo';
+            $data['selected'] = 'Cek Saldo';
+        }
 
         if (auth()->user()->role == 'pengelola') {
             $cekPartner = PartnerUser::where('user_id', Auth::user()->id)->first();
@@ -72,7 +83,7 @@ class TransactionController extends Controller
             $member = Member::where('card_uid', $searchInput)->first();
             $searchPerformed = true;
             $activeSearchTab = 'card';
-        } elseif ($request->has('qrCode') && $request->filled('qrCode')) {
+        } elseif ($request->has('qrCode') && $request->filled('qrCode') && $request->get('mode') !== 'cek_saldo') {
             $searchInput = $request->qrCode;
             $data['qrCode'] = $searchInput;
             $searchPerformed = true;
@@ -90,6 +101,10 @@ class TransactionController extends Controller
                     session()->flash('error', 'Token valid, tapi data member terkait tidak ditemukan.');
                 } else {
                     $data['qrCodeToken'] = $token->token;
+                    $req = Cache::get('qr_request_' . $token->token);
+                    if ($req && isset($req['amount'])) {
+                        $data['prefilledNominal'] = (int)$req['amount'];
+                    }
                 }
             }
         }
@@ -100,6 +115,43 @@ class TransactionController extends Controller
             $data['limitInfo'] = $limitInfo;
             $data['usedAmount'] = $limitInfo['used_amount'];
             $data['remainingLimit'] = $limitInfo['remaining_limit'];
+
+            $wallet = Wallet::where('member_id', $member->id)->first();
+            if ($wallet) {
+                // Untuk mode transaksi biasa, ambil rekomendasi nominal
+                $recommendations = Transaction::selectRaw('amount, COUNT(*) as cnt, MAX(created_at) as last_used')
+                    ->where('wallet_id', $wallet->id)
+                    ->groupBy('amount')
+                    ->orderByDesc('cnt')
+                    ->orderByDesc('last_used')
+                    ->limit(5)
+                    ->get()
+                    ->pluck('amount')
+                    ->toArray();
+                $data['recommendations'] = $recommendations;
+
+                // Mode cek saldo: wajib PIN meskipun status_pin inactive
+                if ($data['mode'] === 'cek_saldo') {
+                    $pin = $request->input('pin');
+                    if ($pin === null) {
+                        // Tidak ada PIN, tidak tampilkan saldo
+                        $data['pinValid'] = false;
+                    } else {
+                        if (empty($member->pin)) {
+                            session()->flash('error', 'PIN belum diatur untuk member ini.');
+                            $data['pinValid'] = false;
+                        } elseif (!\Illuminate\Support\Facades\Hash::check($pin, $member->pin)) {
+                            session()->flash('error', 'PIN salah.');
+                            $data['pinValid'] = false;
+                        } else {
+                            $data['pinValid'] = true;
+                            $data['walletBalance'] = (int) $wallet->balance;
+                        }
+                    }
+                } else {
+                    // Mode normal: saldo tidak ditampilkan di halaman ini
+                }
+            }
         } elseif ($searchPerformed && !$member) {
             session()->flash('error', 'Member tidak ditemukan.');
         }
@@ -107,6 +159,32 @@ class TransactionController extends Controller
         $data['activeSearchTab'] = $activeSearchTab;
 
         return view('v_page.transaction.create', $data);
+    }
+
+    public function checkBalance(Request $request)
+    {
+        $member = null;
+        if ($request->filled('memberId')) {
+            $member = Member::where('member_no', $request->memberId)->first();
+        } elseif ($request->filled('cardUid')) {
+            $member = Member::where('card_uid', $request->cardUid)->first();
+        }
+        if (!$member) {
+            return response()->json(['success' => false, 'error' => 'Member tidak ditemukan'], 404);
+        }
+        $pin = $request->input('pin');
+        if ($pin === null || $pin === '') {
+            return response()->json(['success' => false, 'error' => 'PIN wajib diisi'], 400);
+        }
+        if (empty($member->pin)) {
+            return response()->json(['success' => false, 'error' => 'PIN belum diatur untuk member ini'], 400);
+        }
+        if (!Hash::check($pin, $member->pin)) {
+            return response()->json(['success' => false, 'error' => 'PIN salah'], 401);
+        }
+        $wallet = Wallet::where('member_id', $member->id)->first();
+        $balance = $wallet ? (int) $wallet->balance : 0;
+        return response()->json(['success' => true, 'balance' => $balance]);
     }
 
     private function calculateTransactionLimit($member)
@@ -192,7 +270,6 @@ class TransactionController extends Controller
         $validator = Validator::make($request->all(), [
             'memberId' => 'required|string|exists:members,member_no',
             'nominal' => 'required|numeric|min:1',
-            'transactionType' => 'required|string',
             'deskripsi' => 'nullable',
             'pin' => 'string|' . (Member::where('member_no', $request->input('memberId'))->first() && Member::where('member_no', $request->input('memberId'))->first()->status_pin == 'active' ? 'required' : 'nullable'),
             'qrToken' => 'nullable|string|exists:qr_tokens,token',
@@ -221,6 +298,7 @@ class TransactionController extends Controller
         }
 
         $partnerUser = PartnerUser::where('user_id', $user)->first();
+        $PartberName = Partner::where('id', $partnerUser->partner_id)->first();
         if (!$partnerUser) {
             return redirect()->back()->withInput()->with('error', 'Gagal! Akun Anda tidak terhubung dengan partner.');
         }
@@ -230,8 +308,21 @@ class TransactionController extends Controller
             return redirect()->back()->withInput()->with('error', 'Gagal! Merchant untuk partner Anda tidak ditemukan.');
         }
 
-        if ($request->input('transactionType') === 'payment' && $request->input('nominal') > $wallet->balance) {
+        $nominal = (int)$request->input('nominal');
+        $transactionType = $PartberName->status == true ? 'topup' : 'payment';
+        // 1. Pengecekan Saldo (Hanya untuk Payment)
+        if ($transactionType === 'payment' && $nominal > $wallet->balance) {
             return redirect()->back()->withInput()->with('error', 'Transaksi Gagal! Saldo member tidak mencukupi (Saldo: Rp ' . number_format($wallet->balance, 0, ',', '.') . ').');
+        }
+
+        // 2. Pengecekan Limit Transaksi (Hanya untuk Payment)
+        if ($transactionType === 'payment') {
+            $limitInfo = $this->calculateTransactionLimit($member);
+            $remainingLimit = $limitInfo['remaining_limit'];
+
+            if ($nominal > $remainingLimit) {
+                return redirect()->back()->withInput()->with('error', 'Transaksi Gagal! Jumlah nominal melebihi sisa limit transaksi (Sisa Limit: Rp ' . number_format($remainingLimit, 0, ',', '.') . ').');
+            }
         }
 
         $qrToken = null;
@@ -252,21 +343,36 @@ class TransactionController extends Controller
             $numberPart = str_pad($todayCount + 1, 3, '0', STR_PAD_LEFT);
             $generatedTrxId = 'TRX' . $datePart . $numberPart;
 
+            $wallet_partner = PartnerWallet::where('partner_id', $partnerUser->partner_id)->first();
+            $komisi = 0;
+            $komisi_amount = 0;
+            $amount_after_komisi = $request->input('nominal');
+            if ($transactionType === 'payment') {
+                $komisi = Partner::where('id', $partnerUser->partner_id)->first()->komisi;
+                $komisi_amount = ($request->input('nominal') * $komisi) / 100;
+                $amount_after_komisi = $request->input('nominal') - $komisi_amount;
+            }
+
             Transaction::create([
                 'trx_id' => $generatedTrxId,
                 'wallet_id' => $wallet->id,
                 'merchant_id' => $merchant->id,
-                'type' => $request->input('transactionType'),
+                'type' => $transactionType,
                 'amount' => $request->input('nominal'),
+                'komisi' => $komisi,
+                'komisi_amount' => $komisi_amount,
+                'amount_after_komisi' => $amount_after_komisi,
                 'description' => $request->input('deskripsi'),
                 'user_id' => $user,
             ]);
 
-            if ($request->input('transactionType') === 'topup') {
+            if ($transactionType === 'topup') {
                 $wallet->balance += $request->input('nominal');
                 $wallet->last_topup_at = now();
-            } elseif ($request->input('transactionType') === 'payment') {
+            } elseif ($transactionType === 'payment') {
                 $wallet->balance -= $request->input('nominal');
+                $wallet_partner->balance += $amount_after_komisi;
+                $wallet_partner->save();
             }
 
             $wallet->save();
@@ -276,7 +382,7 @@ class TransactionController extends Controller
                 $cacheKey = 'qr_data_' . $qrToken->token;
                 $cacheData = [
                     'amount' => $request->input('nominal'),
-                    'type' => $request->input('transactionType')
+                    'type' => $transactionType
                 ];
                 Cache::put($cacheKey, $cacheData, \Carbon\Carbon::now()->addMinutes(2));
             }

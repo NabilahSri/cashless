@@ -72,7 +72,7 @@
                 </div>
                 <!-- Metric Item End -->
 
-                <!-- Metric Item Start -->
+                {{-- <!-- Metric Item Start -->
                 <div
                     class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
                     <h4 class="text-title-sm font-bold text-gray-800 dark:text-white/90">
@@ -87,9 +87,9 @@
                         </div>
                     </div>
                 </div>
-                <!-- Metric Item End -->
+                <!-- Metric Item End --> --}}
 
-                <!-- Metric Item Start -->
+                {{-- <!-- Metric Item Start -->
                 <div
                     class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
                     <h4 class="text-title-sm font-bold text-gray-800 dark:text-white/90">
@@ -104,7 +104,7 @@
                         </div>
                     </div>
                 </div>
-                <!-- Metric Item End -->
+                <!-- Metric Item End --> --}}
             </div>
             <!-- Metric Group Four -->
         </div>

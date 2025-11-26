@@ -178,6 +178,17 @@
                         </span>
                     </a>
                 </li>
+                <li>
+                    <a href="{{ route('transaction.create', ['mode' => 'cek_saldo']) }}"
+                        @click="selected = (selected === 'Cek Saldo' ? '':'Cek Saldo')" class="menu-item group"
+                        :class="(selected === 'Cek Saldo') && (page === 'cek_saldo') ? 'menu-item-active' : 'menu-item-inactive'">
+                        <i class="fa-solid fa-wallet text-xl"></i>
+
+                        <span class="menu-item-text" :class="sidebarToggle ? 'xl:hidden' : ''">
+                            Cek Saldo
+                        </span>
+                    </a>
+                </li>
                 <!-- Menu Item Dashboard -->
             @endif
 

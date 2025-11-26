@@ -20,4 +20,14 @@ class Partner extends Model
     {
         return $this->hasMany(PartnerUser::class);
     }
+
+    public function partnerWallet()
+    {
+        return $this->hasOne(PartnerWallet::class);
+    }
+
+    public function withdrawalRequest()
+    {
+        return $this->hasMany(WithdrawalRequest::class);
+    }
 }

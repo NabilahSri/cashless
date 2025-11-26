@@ -44,6 +44,30 @@
             </div>
 
             @if (auth()->user()->role == 'member')
+                <div
+                    class="mb-6 rounded-2xl border border-green-200 bg-green-50 p-5 lg:p-6 dark:border-green-800 dark:bg-green-900/20">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <div
+                                class="w-12 h-12 bg-green-100 dark:bg-green-800 rounded-full flex items-center justify-center">
+                                <i class="fa-solid fa-wallet text-2xl text-green-600 dark:text-green-400"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs font-medium text-green-700 dark:text-green-300">Saldo Wallet</p>
+                                <div class="flex items-center gap-3">
+                                    <p id="profile_balance_value"
+                                        class="text-3xl font-extrabold text-green-800 dark:text-green-300">
+                                        Rp {{ number_format($walletBalance ?? 0, 0, ',', '.') }}
+                                    </p>
+                                    <button id="profile_balance_toggle" type="button"
+                                        class="rounded-md border border-green-300 dark:border-green-600 px-3 py-2 text-green-700 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-800/30">
+                                        <i class="fa-solid fa-eye-slash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div class="mb-6 rounded-2xl border border-gray-200 p-5 lg:p-6 dark:border-gray-800">
                     <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
                         <div>
@@ -123,6 +147,14 @@
                                         {{ $member->address }}
                                     </p>
                                 </div>
+                                <div>
+                                    <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
+                                        Saldo
+                                    </p>
+                                    <p class="text-sm font-bold text-green-700 dark:text-green-400">
+                                        Rp {{ number_format($walletBalance ?? 0, 0, ',', '.') }}
+                                    </p>
+                                </div>
                             </div>
                         </div>
 
@@ -138,6 +170,33 @@
                         </button>
                     </div>
                 </div>
+                @push('scripts')
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            var val = document.getElementById('profile_balance_value');
+                            var btn = document.getElementById('profile_balance_toggle');
+                            if (val && btn) {
+                                var orig = val.textContent.trim();
+                                var hidden = true;
+                                if (orig) {
+                                    val.textContent = '••••••••';
+                                    btn.innerHTML = '<i class="fa-solid fa-eye-slash"></i>';
+                                }
+                                btn.addEventListener('click', function() {
+                                    if (!hidden) {
+                                        val.textContent = '••••••••';
+                                        btn.innerHTML = '<i class="fa-solid fa-eye-slash"></i>';
+                                        hidden = true;
+                                    } else {
+                                        val.textContent = orig;
+                                        btn.innerHTML = '<i class="fa-solid fa-eye"></i>';
+                                        hidden = false;
+                                    }
+                                });
+                            }
+                        });
+                    </script>
+                @endpush
             @endif
         </div>
 
@@ -169,8 +228,8 @@
                     </button>
                 </div>
 
-                <form action="{{ route('personalInformation', auth()->user()->id) }}" method="POST" class="mt-6 space-y-5"
-                    x-data="{
+                <form action="{{ route('personalInformation', auth()->user()->id) }}" method="POST"
+                    class="mt-6 space-y-5" x-data="{
                         pinStatus: '{{ old('status_pin', $member->status_pin ?? 'inactive') }}',
                         limitStatus: '{{ old('status_limit', $member->status_limit ?? 'no_limit') }}',
                         limitTransaction: '{{ old('limit_transaction', number_format($member->limit_transaction ?? 0, 0, ',', '.')) }}',
@@ -204,7 +263,8 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div>
                             <label for="name"
-                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nama Lengkap</label>
+                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nama
+                                Lengkap</label>
                             <input type="text" name="name" id="name" required
                                 value="{{ old('name', auth()->user()->name) }}"
                                 class="w-full rounded-lg border border-gray-300 p-3 text-gray-900 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"

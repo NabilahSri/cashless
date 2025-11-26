@@ -6,6 +6,7 @@ use App\Models\Member;
 use App\Models\Merchant;
 use App\Models\Partner;
 use App\Models\PartnerUser;
+use App\Models\PartnerWallet;
 use App\Models\User;
 use App\Models\Wallet;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -68,6 +69,11 @@ class DatabaseSeeder extends Seeder
             'is_admin' => false,
             'created_at' => now(),
             'updated_at' => now(),
+        ]);
+
+        PartnerWallet::create([
+            'partner_id' => $partner->id,
+            'balance' => 0
         ]);
 
         Merchant::create([

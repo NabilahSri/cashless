@@ -6,6 +6,7 @@ use App\Exports\TransactionExport;
 use App\Models\Member;
 use App\Models\Merchant;
 use App\Models\PartnerUser;
+use App\Models\Partner;
 use Rappasoft\LaravelLivewireTables\DataTableComponent;
 use Rappasoft\LaravelLivewireTables\Views\Column;
 use App\Models\Transaction;
@@ -31,10 +32,9 @@ class TransactionTable extends DataTableComponent
             'transactions.id',
             'amount',
             'type',
-            'transactions.created_at',
-            'trx_id',
-            'wallet_id',
-            'merchant_id',
+            'komisi',
+            'komisi_amount',
+            'amount_after_komisi',
         ]);
         $this->setFilterLayout('slide-down');
         $this->setBulkActions([
@@ -59,17 +59,6 @@ class TransactionTable extends DataTableComponent
 
     public function filters(): array
     {
-        $filters = [
-            SelectFilter::make('Tipe')
-                ->options([
-                    '' => 'Semua',
-                    'payment' => 'Pembayaran',
-                    'topup' => 'Top Up',
-                ])
-                ->filter(function (Builder $builder, string $value) {
-                    $builder->where('type', $value);
-                }),
-        ];
 
         $filters[] =  DateRangeFilter::make('Tanggal Transaksi')
             ->config([
@@ -90,6 +79,17 @@ class TransactionTable extends DataTableComponent
             });
 
         if (Auth::user()->role === 'admin') {
+            $filters[] =
+                SelectFilter::make('Tipe')
+                ->options([
+                    '' => 'Semua',
+                    'payment' => 'Pembayaran',
+                    'topup' => 'Top Up',
+                ])
+                ->filter(function (Builder $builder, string $value) {
+                    $builder->where('type', $value);
+                });
+
             $filters[] = SelectFilter::make('Pengelola')
                 ->options([
                     '' => 'Semua',
@@ -107,6 +107,19 @@ class TransactionTable extends DataTableComponent
 
     public function columns(): array
     {
+        $commissionLabel = "Potongan (RP)";
+        if (Auth::user()->role === 'admin') {
+            $commissionLabel = "Komisi (RP)";
+        } elseif (Auth::user()->role === 'pengelola') {
+            $partnerUser = PartnerUser::where('user_id', Auth::id())->first();
+            if ($partnerUser) {
+                $partner = Partner::find($partnerUser->partner_id);
+                if ($partner && (int) $partner->status === 1) {
+                    $commissionLabel = "Komisi (RP)";
+                }
+            }
+        }
+
         return [
             Column::make("Tanggal", "created_at")
                 ->sortable(),
@@ -128,21 +141,12 @@ class TransactionTable extends DataTableComponent
             Column::make("Nominal", "amount")
                 ->label(fn($row) => 'Rp ' . number_format($row->amount, 0, ',', '.'))
                 ->sortable(),
-            Column::make("Komisi Partner")
-                ->label(function ($row) {
-                    if ($row->type === 'payment' && $row->merchant && $row->merchant->partner) {
-                        $komisi = $row->merchant->partner->komisi ?? 0;
-                        return $komisi . ' %';
-                    }
-                    return '0 %';
-                }),
-            Column::make("Komisi (Rp)")
-                ->label(function ($row) {
-                    if ($row->type === 'payment' && $row->merchant && $row->merchant->partner && is_numeric($row->merchant->partner->komisi)) {
-                        $commission_amount = ($row->amount * $row->merchant->partner->komisi) / 100;
-                        return 'Rp ' . number_format($commission_amount, 0, ',', '.');
-                    }
-                    return 'Rp 0';
+            Column::make($commissionLabel, "komisi_amount")
+                ->label(fn($row) => 'Rp ' . number_format($row->komisi_amount, 0, ',', '.')),
+            Column::make("Total", "amount_after_komisi")
+                ->label(fn($row) => 'Rp ' . number_format($row->amount_after_komisi, 0, ',', '.'))
+                ->footer(function ($rows) {
+                    return $rows->sum('amount_after_komisi') ? 'Rp ' . number_format($rows->sum('amount_after_komisi'), 0, ',', '.') : 'Rp 0';
                 }),
         ];
     }
